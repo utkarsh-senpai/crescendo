@@ -75,8 +75,8 @@ the transparent AI opponent · live/continuous scoring.
 
 ## 6. System context (what connects to what)
 
-See the Mermaid diagram in [`L1-system-context.mmd`](./L1-system-context.mmd) (rendered
-below). External dependency in the MVP is **only** the YouTube Data API v3.
+See the Mermaid diagram in [`L1-system-context.md`](./L1-system-context.md) (renders
+natively on GitHub). External dependency in the MVP is **only** the YouTube Data API v3.
 
 ## 7. Key non-functional constraints (L1-level)
 

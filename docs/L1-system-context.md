@@ -1,5 +1,9 @@
-%% Crescendo — L1 System Context
-%% Solid lines / bold = MVP (modeling spike). Dashed = later scope (game/AI opponent).
+# Crescendo — L1 System Context Diagram
+
+> Renders natively on GitHub (Mermaid in a fenced code block).
+> **Solid arrows = MVP (modeling spike). Dashed arrows = later scope (game / AI opponent).**
+
+```mermaid
 flowchart LR
     subgraph ACTORS["Actors"]
         MOD["🧑‍💻 Modeler<br/>(you)"]
@@ -38,3 +42,4 @@ flowchart LR
     class INGEST,DB,ML,MOD mvp;
     class GAME,PLAYER,AI later;
     class YT ext;
+```
