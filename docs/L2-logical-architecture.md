@@ -11,8 +11,8 @@
 - **Status:** Draft v0.1
 - **Owner:** utkarsh-senpai
 - **Reviewing persona:** "Sam" — Staff ML Engineer / hiring manager
-- **Builds on:** [`L1-solution-context.md`](./L1-solution-context.md)
-- **Date:** 2026-08-04
+- **Builds on:** [`L1-solution-context.md`](./L1-solution-context.md), [`research-2026-08.md`](./research-2026-08.md)
+- **Date:** 2026-08-04 · **Revised:** 2026-08-10 (research pass — added C3′ data-quality guard, PWA delivery)
 
 ---
 
@@ -44,8 +44,9 @@ keeps the door open to splitting the ML service out later (L1 §6).
 |---|---|---|---|
 | C1 | **Discovery / Resolver** | Find electronic/EDM channels in the 1k–100k band; resolve to stable channel IDs; register them as tracked artists | seed playlists → `tracked_artist` rows |
 | C2 | **Snapshot Collector** | Daily: read each tracked artist's channel stats from YouTube; write immutable raw snapshots; respect quota budget | tracked artists → `raw_snapshot` rows |
-| C3 | **Cohort & Feature Builder** | Turn raw snapshots into a leakage-safe modeling table: define cohort entry, compute momentum features, compute the 30-day forward relative-growth label | raw snapshots → `feature_row` / dataset |
-| C4 | **Modeling & Evaluation** | Train LightGBM/XGBoost; evaluate with temporal split + precision@k vs base-rate baseline; emit metrics + report | dataset → model artifact + metrics report |
+| C3 | **Cohort & Feature Builder** | Turn raw snapshots into a leakage-safe modeling table: define cohort entry, compute momentum features (incl. the **inorganic-growth flag**, see C3′), compute the 30-day forward relative-growth label | raw snapshots → `feature_row` / dataset |
+| C3′ | **Data-Quality / Signal Integrity** *(new, 2026-08)* | A **sub-concern of C3**, not a new deployable: detect **inorganic growth** (bot/purchased/synthetic spikes — a risk amplified by the 2026 AI-music flood, see research §3). Flags suspect artist-days so the model can down-weight or exclude them, and so the flag itself becomes a feature. | snapshots → `suspected_inorganic` flag on dataset rows |
+| C4 | **Modeling & Evaluation** | Train LightGBM/XGBoost; evaluate with temporal split + precision@k vs base-rate baseline; emit metrics + report. **Exposes the `predict()` + `reasons` seam** the transparent-AI opponent uses. | dataset → model artifact + metrics report |
 | S1 | **Postgres** | System of record: raw snapshots (immutable) + curated cohort/features | — |
 
 *(Future, dashed in diagram: **Game Backend** (Spring Boot) and **AI Opponent** — both
@@ -65,6 +66,7 @@ YouTube Data API ──▶ [C2 Collector] ──▶ raw_snapshot   (immutable, a
                           • filter to 1k–100k entry band
                           • enforce cold-start (≥~35–45d history)
                           • compute trailing momentum features
+                          • [C3′] flag inorganic growth (bot/synthetic spikes)
                           • compute forward 30d relative-growth label
                           • label breakout = cohort top-decile
                                          │
@@ -124,6 +126,21 @@ snapshots in `(t, t+30d]`. C3 is where this is enforced structurally.
 - **Reproducible:** given the immutable raw snapshots, C3 is a pure function → same dataset
   every time.
 
+### C3′ — Data-Quality / Signal Integrity (new, 2026-08 research pass)
+- **Why it exists now:** the AI-music flood (research §3) means growth can be *manufactured*
+  (bot subs, synthetic-native artists spiking overnight). Untreated, this pollutes the
+  momentum signal and inflates "breakouts" that aren't real audience growth.
+- **What it does (pure, offline, $0 — no extra API calls):** over the *same* as-of snapshot
+  window, compute cheap anomaly signals — e.g. **implausible day-over-day subscriber jumps**
+  (z-score vs. the artist's own recent volatility), **subs rising while views flat**
+  (engagement mismatch), **step discontinuities**. Emit a `suspected_inorganic` flag +
+  a continuous `inorganic_score` per artist-day.
+- **How the model uses it (config-switchable):** (a) as an **input feature** (the model learns
+  to discount suspicious momentum), and/or (b) as an **exclusion filter** for training/label
+  cohorts. Default: include as feature, don't exclude — so the choice is auditable.
+- **Leakage-safe:** uses only snapshots ≤ `as_of`, exactly like every other C3 feature — it is
+  literally another as-of feature, so it inherits C3's purity + reproducibility.
+
 ### C4 — Modeling & Evaluation
 - **Split:** **temporal only** — train on rows with `as_of_date < cutoff`, test on rows
   after. Never random (would leak future).
@@ -168,6 +185,12 @@ shows the player" is true by construction.
 - **Observability (light)** — structured logs for collection runs (artists snapshotted, units
   spent, failures) and eval runs (rows, metrics). No heavy infra for MVP.
 - **Secrets** — YouTube API key via `.env` (git-ignored), never committed.
+- **Data-quality / signal integrity** *(new)* — inorganic-growth detection (C3′) as an as-of
+  feature + flag; keeps the momentum signal honest against the AI-music flood. Costs $0 (pure
+  compute on already-collected snapshots, no extra API calls).
+- **Zero-cost & delivery** *(new)* — every component must run on a **free tier** (L1 $0
+  mandate). Consumer surface ships as an **installable PWA** (desktop + Android; no iOS/App
+  Store) so there are no store fees or native build pipelines.
 
 ---
 
@@ -175,12 +198,13 @@ shows the player" is true by construction.
 
 | Logical component | MVP technology | Later |
 |---|---|---|
-| C1 Discovery, C2 Collector, C3 Builder, C4 Modeling | Python 3.12 (`uv`), `google-api-python-client`, pandas, LightGBM/XGBoost, APScheduler | Split C1–C2 into an ingestion service; C4 into a prediction service |
-| S1 Store | Postgres (local/Docker) | Managed Postgres |
-| Scheduling | APScheduler / cron | Prefect/Airflow if complexity grows |
-| Packaging | `crescendo` package + CLI + report notebook | + FastAPI prediction endpoint |
-| (future) Game Backend | — | Spring Boot |
-| (future) AI Opponent | — | Reuses C4 via the prediction contract |
+| C1 Discovery, C2 Collector, C3 Builder (incl. C3′), C4 Modeling | Python 3.12 (`uv`), `google-api-python-client`, pandas, LightGBM/XGBoost, APScheduler | Split C1–C2 into an ingestion service; C4 into a prediction service |
+| S1 Store | Postgres (local/Docker) | **Neon free tier** (managed Postgres, $0) |
+| Scheduling | APScheduler / cron | **GitHub Actions cron** (free minutes) |
+| Packaging | `crescendo` package + CLI + report notebook | + FastAPI prediction endpoint (free tier: Fly/Render) |
+| (future) Game Backend | — | Spring Boot (free-tier host) |
+| (future) Consumer client | — | **Installable PWA** (desktop + Android; **no iOS/App Store**) on a free static host (Vercel/GitHub Pages) — satisfies the $0 mandate |
+| (future) AI Opponent | — | Reuses C4 via the prediction contract; surfaces `reasons` (transparent play) |
 
 ---
 
