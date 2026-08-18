@@ -100,6 +100,8 @@ class CollectReport:
     n_failed: int
     n_deactivated: int
     units_spent: int
+    status: str = "ok"  # ok | empty | quota_partial — drives the CLI exit code + audit row
+    n_active: int = 0  # active artists the pass was supposed to snapshot
 
 
 @dataclass(frozen=True)

@@ -56,6 +56,11 @@ class YouTubeClient:
         self._acct = accountant
         self._session = session or requests.Session()
 
+    @property
+    def units_spent(self) -> int:
+        """Units charged so far this run (public read; callers must not touch the accountant)."""
+        return self._acct.spent
+
     # ---- public API (per-op quota cost noted; §14) ----
 
     def channel_stats(self, channel_id: str) -> ArtistStats:

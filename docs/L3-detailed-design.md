@@ -11,7 +11,9 @@
 - **Owner:** utkarsh-senpai
 - **Reviewing persona:** "Sam" — Staff ML Engineer / hiring manager
 - **Builds on:** [`L1-solution-context.md`](./L1-solution-context.md), [`L2-logical-architecture.md`](./L2-logical-architecture.md), [`research-2026-08.md`](./research-2026-08.md)
-- **Date:** 2026-08-04 · **Revised:** 2026-08-10 (research pass — inorganic-growth flag, PWA/$0 delivery)
+- **Date:** 2026-08-04 · **Revised:** 2026-08-10 (research pass — inorganic-growth flag, PWA/$0
+  delivery) · **2026-08-18** (organic-breakout target/metric reframe; v0.2 collector run-log +
+  `doctor` preflight + GH Actions cron — see `research-2026-08-18-organic-breakout.md`)
 
 ---
 
@@ -20,6 +22,7 @@
 - **Monorepo** — one `crescendo` repo, module dirs (`ml/`, later `serving/`/`backend/`/`frontend/`).
 - **Genre:** electronic/EDM (config-swappable). **Emerging band:** 1k–100k subs at entry.
 - **Target:** 30-day forward relative growth; **breakout = cohort top-decile**, scored per fold.
+  **Reframed 2026-08-18 to ORGANIC breakout** = top-decile AND NOT `suspected_inorganic` (as-of).
 - **Signal:** channel-level daily (subs, views, video count). **Cadence:** daily.
 - **Stack:** Python 3.12 (`uv`), Postgres (Docker), pandas, LightGBM/XGBoost, scikit-learn, APScheduler.
 - **Deploy:** free-tier first (Neon + GitHub Actions cron), AWS/CDK later.
@@ -124,6 +127,21 @@ CREATE TABLE dataset (
     PRIMARY KEY (artist_id, as_of_date, dataset_version)
 );
 CREATE INDEX idx_dataset_asof ON dataset (as_of_date);
+
+-- ============ AUDIT: per-run collector health (v0.2) ============
+-- GitHub Actions logs are ephemeral; this table is the durable record that lets a cold
+-- return after weeks of unattended collection verify the pipeline stayed healthy.
+CREATE TABLE collect_run (
+    run_id          TEXT PRIMARY KEY,               -- == the JSON-log run_id for correlation
+    ran_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    captured_on     DATE NOT NULL,
+    n_snapshotted   INTEGER NOT NULL,
+    n_deactivated   INTEGER NOT NULL,
+    units_spent     INTEGER NOT NULL,
+    status          TEXT NOT NULL,                  -- ok | empty | quota_partial
+    detail          TEXT
+);
+CREATE INDEX idx_collect_run_day ON collect_run (captured_on);
 ```
 
 **Design notes:**
@@ -132,6 +150,9 @@ CREATE INDEX idx_dataset_asof ON dataset (as_of_date);
 - `is_breakout` is intentionally **nullable and set at eval time**, because top-decile is
   computed **within each temporal fold** (see §4/§5) — it is *not* a fixed property of a row.
 - `dataset_version` = hash of the config that produced it → different params never collide.
+- `collect_run` (v0.2) makes the unattended cron **observable**: `crescendo status` reads the
+  last N rows; `status='empty'` (active artists but 0 snapshotted) is the silent-failure alarm
+  that also makes the CLI exit non-zero so the CI run goes red.
 
 ---
 
@@ -199,6 +220,19 @@ distribution → **future leakage into the label**. Computing it within each fol
 label honest and makes precision@k meaningful. This is the single subtlest correctness point
 in the project and is enforced in `evaluate.py`, not left to convention.
 
+**ORGANIC breakout — the reframed target (2026-08-18):**
+
+> `organic_breakout` = 1 iff `is_breakout` (top-decile forward growth in-fold) **AND NOT
+> `suspected_inorganic`** (the C3′ flag, computed from `≤ t` snapshots only — so it stays
+> leakage-safe). Growth our own detector believes was bought/bot-inflated does **not** count
+> as a win.
+
+This is the project's novelty made concrete: we don't reward inflated growth, and we *prove*
+the model's headline picks aren't pumped (see §5 metrics). It is a reframe, not a rebuild —
+`inorganic_score`/`suspected_inorganic` already existed as as-of features (§3); v0.2 promotes
+authenticity from a side-signal into the **objective and the metric**. Rationale + retest in
+`research-2026-08-18-organic-breakout.md`.
+
 ---
 
 ## 5. Evaluation protocol (C4)
@@ -223,8 +257,19 @@ precision@k = (# of the model's top-k picks that are actually breakouts) / k
 - Report **lift** = `precision@k / base_rate`. Lift > 1 = the model has real signal.
 - Secondary: NDCG@k, ROC-AUC, calibration — for the report notebook.
 
-**Success bar (from L1 §8):** precision@k **beats the base-rate baseline** on the temporal
-holdout — or a documented, honest negative result. Both are valid resume stories.
+**Authenticity-aware headline metrics (2026-08-18):** computed on the same folds/`k`:
+- **`organic_precision@k`** — of the top-k picks, the fraction that are *organic* breakouts
+  (top-decile growth AND not `suspected_inorganic`). This is the metric we actually headline.
+- **`organic_lift`** = `organic_precision@k / organic_base_rate`.
+- **`inorganic_rate@k`** — of the top-k picks, the fraction flagged `suspected_inorganic`. A
+  leaderboard we'd surface wants this **LOW**; it measures contamination of the headline list.
+- **Money comparison:** organic precision of the model vs the naive-momentum baseline — a
+  momentum chaser gets fooled by pumped channels, so its organic precision should trail ours.
+  (Retest: **+17% organic precision, −33% inorganic rate** vs momentum — research §4.)
+
+**Success bar (from L1 §8):** **organic** precision@k **beats the base-rate + momentum
+baselines** on the temporal holdout — or a documented, honest negative result. Both are valid
+resume stories.
 
 ---
 
@@ -238,10 +283,13 @@ Single entrypoint (Typer). Every command reads `config/crescendo.toml` + `.env`.
 | `crescendo collect` | C2: one daily snapshot pass over active artists | `--dry-run`, `--limit N` (quota-aware) |
 | `crescendo build-dataset` | C3: assemble features + labels → `dataset` | `--as-of-start`, `--as-of-end` |
 | `crescendo train` | C4: fit model on train fold | `--model {lgbm,xgb}`, `--cutoff DATE` |
-| `crescendo evaluate` | C4: temporal split, precision@k, baselines, report | `--cutoff DATE`, `--k N`, `--walk-forward` |
-| `crescendo status` | ops: artists tracked, snapshots, quota used today | — |
+| `crescendo evaluate` | C4: temporal split, precision@k + organic metrics, baselines, report | `--cutoff DATE`, `--k N`, `--walk-forward` |
+| `crescendo status` | ops: artists tracked, snapshots, quota, **+ last N `collect_run` rows (v0.2)** | — |
+| `crescendo doctor` | **v0.2 preflight**: config valid, DB reachable, API key live, quota headroom; exit 1 if any fail | `--api/--no-api` |
 
-Exit codes non-zero on failure; all commands log structured JSON lines.
+Exit codes non-zero on failure; all commands log structured JSON lines. **`collect` exits 1
+when a run is `empty`** (active artists but 0 snapshotted) so the unattended cron goes red
+instead of silently green (v0.2).
 
 ---
 
@@ -320,6 +368,7 @@ Config is loaded + **validated** in `config.py` (fail fast on bad ranges / missi
 | `test_dataset.py` | **Leakage:** no feature uses a snapshot after `as_of_date`; label uses only `(t, t+30]`. **Cold-start:** artists with < `min_history_days` are excluded. |
 | `test_evaluate.py` | Temporal split never puts a future row in train; **top-decile threshold is computed per fold** (regression test for the §4 rule); precision@k math correct. |
 | `test_quota.py` | Quota accountant blocks the call that would exceed the ceiling and logs the dropped work. |
+| `test_collector.py` *(v0.2)* | Collector **run-status classification** (ok / empty / quota_partial), the `empty` silent-failure alarm, dry-run records no audit row, and the public `units_spent` accessor — all on fakes (no DB/API). |
 
 Run via `pytest`; target the leakage/label tests as the "correctness gate" before any model result is trusted.
 
@@ -346,8 +395,11 @@ report notebook.
 
 **Free-tier (v0.2) — the standing target, not a fallback (L1 $0 mandate):**
 - **Postgres → Neon free tier** (swap `DATABASE_URL`). $0.
-- **Daily collector → GitHub Actions cron** (`.github/workflows/collect.yml`, `schedule: cron`),
-  secrets in repo settings; runs `crescendo collect` against Neon. No server, free minutes.
+- **Daily collector → GitHub Actions cron** — **ACTIVATED in v0.2**: `.github/workflows/collect.yml`
+  runs `crescendo doctor` (preflight) then `crescendo collect` daily at 04:00 UTC against Neon,
+  with a `concurrency` group so passes never overlap. Secrets `YOUTUBE_API_KEY` + `DATABASE_URL`
+  in repo settings. No server, free minutes. Each pass writes a `collect_run` audit row so the
+  unattended cron is observable via `crescendo status` between the (sparse) sessions.
 - **Predict API (v0.3) → Fly.io / Render free tier** (FastAPI, §11). $0.
 - **Consumer client (v1.0) → installable PWA on a free static host** (Vercel / GitHub Pages).
 

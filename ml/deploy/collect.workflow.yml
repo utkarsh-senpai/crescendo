@@ -1,7 +1,7 @@
-# v0.2 DEPLOY ARTIFACT — NOT active yet.
-# Move this to ../../.github/workflows/collect.yml (repo root) in v0.2 to activate the
-# daily collector cron on GitHub Actions. Kept here (outside .github/) so it can be pushed
-# with a PAT that lacks the `workflow` scope. Set repo secrets YOUTUBE_API_KEY + DATABASE_URL.
+# v0.2 DEPLOY ARTIFACT — ACTIVATED. The live workflow is ../../.github/workflows/collect.yml
+# (with a `doctor` preflight step added on activation). Kept here as a portable reference copy
+# in case the live file must be re-created with a PAT lacking the `workflow` scope. Set repo
+# secrets YOUTUBE_API_KEY + DATABASE_URL before the cron's first 04:00 UTC run.
 name: collect
 
 on:

@@ -33,9 +33,11 @@ def collect_once(
     by_channel = {a.channel_id: a for a in artists}
     channel_ids = list(by_channel.keys())
 
+    n_active = len(channel_ids)
     snapshots: list[Snapshot] = []
     n_failed = 0
     n_deactivated = 0
+    quota_partial = False
 
     try:
         for i in range(0, len(channel_ids), _BATCH):
@@ -56,20 +58,47 @@ def collect_once(
                     continue
                 snapshots.append(_to_snapshot(artist.artist_id, captured_on, stats))
     except QuotaExceeded as exc:
+        quota_partial = True
         log.warning("quota.block", op=exc.op, remaining=exc.remaining_units,
                     collected=len(snapshots))
 
     written = 0 if dry_run else db.insert_snapshots(snapshots)
-    log.info("collect.done", captured_on=str(captured_on), snapshotted=len(snapshots),
-             written=written, failed=n_failed, deactivated=n_deactivated,
-             units_spent=yt._acct.spent, dry_run=dry_run)
-    return CollectReport(
+
+    # Status classifies the pass so the CLI can exit non-zero and the audit row is queryable.
+    # `empty` = there were active artists but we snapshotted none (a silent-failure alarm).
+    if quota_partial:
+        status = "quota_partial"
+    elif n_active > 0 and len(snapshots) == 0:
+        status = "empty"
+    else:
+        status = "ok"
+
+    report = CollectReport(
         captured_on=captured_on,
         n_snapshotted=len(snapshots),
         n_failed=n_failed,
         n_deactivated=n_deactivated,
-        units_spent=yt._acct.spent,
+        units_spent=yt.units_spent,
+        status=status,
+        n_active=n_active,
     )
+
+    log.info("collect.done", captured_on=str(captured_on), snapshotted=len(snapshots),
+             written=written, failed=n_failed, deactivated=n_deactivated,
+             active=n_active, status=status, units_spent=yt.units_spent, dry_run=dry_run)
+
+    if not dry_run:
+        run_id = log.current_run_id() or captured_on.isoformat()
+        db.record_run(
+            run_id=run_id,
+            captured_on=captured_on,
+            n_snapshotted=len(snapshots),
+            n_deactivated=n_deactivated,
+            units_spent=yt.units_spent,
+            status=status,
+            detail=f"active={n_active} written={written}",
+        )
+    return report
 
 
 def _to_snapshot(artist_id: int, captured_on: date, stats: ArtistStats) -> Snapshot:

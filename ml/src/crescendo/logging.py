@@ -24,6 +24,11 @@ def new_run_id() -> str:
     return _RUN_ID
 
 
+def current_run_id() -> str | None:
+    """The ambient run_id (so audit rows can be correlated with the JSON log stream)."""
+    return _RUN_ID
+
+
 def configure(level: str = "info") -> None:
     """Attach a single stdout handler that passes the pre-rendered JSON line through."""
     _LOGGER.setLevel(getattr(logging, level.upper(), logging.INFO))
