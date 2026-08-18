@@ -181,7 +181,10 @@ def evaluate(
         typer.echo(
             f"fold {r.fold_index} @ {r.cutoff}: "
             f"P@{r.k}={r.precision_at_k:.3f} base={r.base_rate:.3f} "
-            f"lift={r.lift:.2f} auc={r.roc_auc:.3f} (n_test={r.n_test})"
+            f"lift={r.lift:.2f} auc={r.roc_auc:.3f} (n_test={r.n_test})\n"
+            f"    organic: P@{r.k}={r.organic_precision_at_k:.3f} "
+            f"base={r.organic_base_rate:.3f} lift={r.organic_lift:.2f} "
+            f"| inorganic@{r.k}={r.inorganic_rate_at_k:.3f}"
         )
 
 

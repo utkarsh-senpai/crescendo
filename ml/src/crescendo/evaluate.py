@@ -52,6 +52,18 @@ def precision_at_k(y_true: np.ndarray, scores: np.ndarray, k: int) -> float:
     return float(y_true[order].sum()) / k
 
 
+def topk_rate(flags: np.ndarray, scores: np.ndarray, k: int) -> float:
+    """Fraction of the top-k scored items for which `flags` is truthy.
+
+    Used for inorganic_rate@k: what share of the model's headline picks are (as-of)
+    suspected of inorganic growth. A leaderboard we'd actually surface wants this LOW.
+    """
+    if k <= 0 or len(scores) == 0:
+        return 0.0
+    order = np.argsort(-scores, kind="stable")[:k]
+    return float(np.asarray(flags)[order].sum()) / k
+
+
 def ndcg_at_k(y_true: np.ndarray, scores: np.ndarray, k: int) -> float:
     order = np.argsort(-scores, kind="stable")[:k]
     gains = y_true[order]
@@ -123,6 +135,14 @@ def evaluate(
         # importing the (global-vs-fold) decile decision into training.
         y_test = fold_labels(test["fwd_growth_30d"].to_numpy(), cfg.breakout_decile)
 
+        # --- authenticity-aware label: ORGANIC breakout (the reframed target) ---
+        # A pick only counts as an organic breakout if it hit top-decile forward growth
+        # AND was NOT (as-of) flagged suspected_inorganic. suspected_inorganic is computed
+        # from <=as_of snapshots only, so this stays leakage-safe. This is what makes the
+        # product novel: we don't reward growth that our own detector calls inflated.
+        suspected = test["suspected_inorganic"].fillna(False).to_numpy().astype(bool)
+        y_org = (y_test.astype(bool) & ~suspected).astype(int)
+
         est = _new_estimator(model_kind, cfg)
         est.fit(train.reindex(columns=FEATURES), train["fwd_growth_30d"])
         scores = np.asarray(est.predict(test.reindex(columns=FEATURES)))
@@ -131,6 +151,11 @@ def evaluate(
         base_rate = float(y_test.mean())
         p_at_k = precision_at_k(y_test, scores, kk)
         lift = p_at_k / base_rate if base_rate > 0 else float("nan")
+
+        org_base = float(y_org.mean())
+        org_p_at_k = precision_at_k(y_org, scores, kk)
+        org_lift = org_p_at_k / org_base if org_base > 0 else float("nan")
+        inorg_at_k = topk_rate(suspected, scores, kk)
 
         result = EvalResult(
             cutoff=c,
@@ -143,17 +168,29 @@ def evaluate(
             lift=lift,
             ndcg_at_k=ndcg_at_k(y_test, scores, kk),
             roc_auc=_roc_auc(y_test, scores),
+            organic_base_rate=org_base,
+            organic_precision_at_k=org_p_at_k,
+            organic_lift=org_lift,
+            inorganic_rate_at_k=inorg_at_k,
         )
         results.append(result)
 
         # Baselines on the SAME y_test/kk for an honest bar (§5).
         base_rand = precision_at_k(y_test, _rank_random(len(test)), kk)
         base_mom = precision_at_k(y_test, test["growth_7d"].fillna(-1e9).to_numpy(), kk)
+        # Momentum baseline's ORGANIC precision — the money comparison: naive momentum
+        # chasing gets fooled by pumped channels, so its organic_precision should trail ours.
+        org_base_mom = precision_at_k(y_org, test["growth_7d"].fillna(-1e9).to_numpy(), kk)
         log.info("eval.fold", fold=i, cutoff=str(c), n_train=len(train), n_test=len(test),
                  k=kk, base_rate=round(base_rate, 4), precision_at_k=round(p_at_k, 4),
                  lift=round(lift, 3) if not math.isnan(lift) else None,
                  baseline_random=round(base_rand, 4), baseline_momentum=round(base_mom, 4),
-                 roc_auc=round(result.roc_auc, 4) if not math.isnan(result.roc_auc) else None)
+                 roc_auc=round(result.roc_auc, 4) if not math.isnan(result.roc_auc) else None,
+                 organic_base_rate=round(org_base, 4),
+                 organic_precision_at_k=round(org_p_at_k, 4),
+                 organic_lift=round(org_lift, 3) if not math.isnan(org_lift) else None,
+                 inorganic_rate_at_k=round(inorg_at_k, 4),
+                 baseline_momentum_organic=round(org_base_mom, 4))
     return results
 
 

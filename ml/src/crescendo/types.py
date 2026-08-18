@@ -73,6 +73,12 @@ class EvalResult:
     lift: float  # precision_at_k / base_rate
     ndcg_at_k: float
     roc_auc: float
+    # --- authenticity-aware headline (the "organic breakout" reframing) ---
+    # organic_breakout = top-decile forward growth AND NOT suspected_inorganic (as-of).
+    organic_base_rate: float  # organic-breakout prevalence in the test fold
+    organic_precision_at_k: float  # of the top-k picks, fraction that are ORGANIC breakouts
+    organic_lift: float  # organic_precision_at_k / organic_base_rate
+    inorganic_rate_at_k: float  # of the top-k picks, fraction flagged suspected_inorganic (lower=better)
 
 
 # ---- Operation reports (returned by the C1/C2/C3 entrypoints; power the CLI + logs) ----

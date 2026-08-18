@@ -13,6 +13,7 @@ from crescendo.evaluate import (
     ndcg_at_k,
     precision_at_k,
     resolve_k,
+    topk_rate,
 )
 
 
@@ -54,6 +55,26 @@ def test_precision_at_k_arithmetic():
     assert precision_at_k(y, scores, 2) == 0.5
     # perfect ranking
     assert precision_at_k(np.array([1, 1, 0, 0]), np.array([0.9, 0.8, 0.1, 0.0]), 2) == 1.0
+
+
+def test_topk_rate_counts_flagged_share_of_picks():
+    # inorganic_rate@k: of the top-k scored picks, what fraction carry the flag.
+    flags = np.array([True, False, True, False, False])
+    scores = np.array([0.9, 0.8, 0.7, 0.1, 0.0])  # top-3 = indices 0,1,2 -> 2 flagged
+    assert topk_rate(flags, scores, 3) == 2 / 3
+    assert topk_rate(np.zeros(5, dtype=bool), scores, 3) == 0.0
+    assert topk_rate(flags, scores, 0) == 0.0  # k guard
+
+
+def test_organic_label_excludes_flagged_breakouts():
+    # The reframed target: organic breakout = top-decile growth AND not suspected_inorganic.
+    # A pumped channel with the highest forward growth must NOT count as an organic breakout.
+    fwd = np.array([0.1, 0.2, 0.9, 0.95])  # indices 2,3 are top growth
+    suspected = np.array([False, False, False, True])  # index 3 is pumped
+    y = fold_labels(fwd, 0.50)  # top half -> indices 2,3 labeled breakout
+    y_org = (y.astype(bool) & ~suspected).astype(int)
+    assert y[3] == 1 and y_org[3] == 0  # pumped breakout dropped from organic
+    assert y_org[2] == 1  # genuine breakout retained
 
 
 def test_ndcg_perfect_ranking_is_one():
