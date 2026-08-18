@@ -231,14 +231,19 @@ class Db:
             return len(params)
 
     def read_dataset(self, version: str) -> pd.DataFrame:
+        # Build the frame from dict_row cursor results directly. pandas.read_sql does not
+        # officially support a raw psycopg3 connection and mis-parses the result here, so
+        # we materialize rows ourselves — fully in our control and driver-agnostic.
         import pandas as pd
 
-        with self._connect() as conn:
-            return pd.read_sql(
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
                 "SELECT * FROM dataset WHERE dataset_version = %(v)s ORDER BY as_of_date",
-                conn,
-                params={"v": version},
+                {"v": version},
             )
+            rows = cur.fetchall()  # list[dict] via dict_row factory
+            cols = [d.name for d in cur.description] if cur.description else []
+        return pd.DataFrame(rows, columns=cols)
 
     def stats(self) -> dict[str, Any]:
         """Powers `crescendo status`."""
