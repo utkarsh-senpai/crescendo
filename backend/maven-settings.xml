@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Personal-project Maven settings for Crescendo (utkarsh-senpai / personal account).
+  Deliberately routes to Maven Central directly, bypassing the machine-global
+  ~/.m2/settings.xml which mirrors everything through Zendesk's internal Artifactory
+  with a company account. Personal-project builds must not use company infra/creds.
+  No credentials here — safe to commit. Build with:  mvn -s maven-settings.xml ...
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <localRepository>${user.home}/.m2/repository</localRepository>
+    <mirrors>
+        <mirror>
+            <id>maven-central</id>
+            <name>Maven Central (personal, direct)</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <mirrorOf>*</mirrorOf>
+        </mirror>
+    </mirrors>
+</settings>
