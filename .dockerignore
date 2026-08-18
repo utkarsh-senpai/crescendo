@@ -1,0 +1,20 @@
+# Keep the Docker build context small — the image only needs ml/ + serving/ source.
+.git/
+docs/
+frontend/
+backend/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.ruff_cache/
+**/models/
+**/data/
+**/*.joblib
+**/*.parquet
+**/*.csv
+**/.env
+**/.env.*
+!**/.env.example
+ml/notebooks/
+.DS_Store
