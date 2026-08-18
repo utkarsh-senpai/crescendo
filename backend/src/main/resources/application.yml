@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: crescendo-game
+  datasource:
+    url: jdbc:h2:mem:crescendo;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+
+crescendo:
+  predict:
+    # The live v0.3 predict seam (Render free tier). Override with crescendo.predict.base-url.
+    base-url: https://crescendo-predict.onrender.com
+  game:
+    salary-cap: 100
+    roster-size: 5
+    draft-as-of-date: 2026-07-01
+    score-as-of-date: 2026-08-01
+  seed:
+    enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    io.crescendo.game: INFO
