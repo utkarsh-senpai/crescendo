@@ -1,0 +1,30 @@
+# v0.2 DEPLOY ARTIFACT — NOT active yet.
+# Move this to ../../.github/workflows/collect.yml (repo root) in v0.2 to activate the
+# daily collector cron on GitHub Actions. Kept here (outside .github/) so it can be pushed
+# with a PAT that lacks the `workflow` scope. Set repo secrets YOUTUBE_API_KEY + DATABASE_URL.
+name: collect
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # 04:00 UTC daily (one run/day == one quota window)
+  workflow_dispatch: {}
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+      - name: Sync deps
+        run: uv sync
+      - name: Collect one snapshot pass
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: uv run crescendo collect
