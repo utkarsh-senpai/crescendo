@@ -61,6 +61,21 @@ CREATE TABLE IF NOT EXISTS dataset (
     PRIMARY KEY (artist_id, as_of_date, dataset_version)
 );
 CREATE INDEX IF NOT EXISTS idx_dataset_asof ON dataset (as_of_date);
+
+-- v0.2: audit trail for the unattended daily collector. GitHub Actions logs are
+-- ephemeral, so each collect pass persists its own health here — this is how a cold
+-- return after weeks of autonomous collection can tell the pipeline stayed healthy.
+CREATE TABLE IF NOT EXISTS collect_run (
+    run_id          TEXT PRIMARY KEY,
+    ran_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    captured_on     DATE NOT NULL,
+    n_snapshotted   INTEGER NOT NULL,
+    n_deactivated   INTEGER NOT NULL,
+    units_spent     INTEGER NOT NULL,
+    status          TEXT NOT NULL,   -- ok | empty | quota_partial
+    detail          TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_collect_run_day ON collect_run (captured_on);
 """
 
 
@@ -268,3 +283,49 @@ class Db:
             "history_from": span["lo"],
             "history_to": span["hi"],
         }
+
+    def record_run(
+        self,
+        run_id: str,
+        captured_on: date,
+        n_snapshotted: int,
+        n_deactivated: int,
+        units_spent: int,
+        status: str,
+        detail: str | None = None,
+    ) -> None:
+        """Persist one collect pass to the audit trail (idempotent on run_id)."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO collect_run
+                    (run_id, captured_on, n_snapshotted, n_deactivated,
+                     units_spent, status, detail)
+                VALUES (%(run_id)s, %(captured_on)s, %(n_snapshotted)s,
+                        %(n_deactivated)s, %(units_spent)s, %(status)s, %(detail)s)
+                ON CONFLICT (run_id) DO NOTHING
+                """,
+                {
+                    "run_id": run_id,
+                    "captured_on": captured_on,
+                    "n_snapshotted": n_snapshotted,
+                    "n_deactivated": n_deactivated,
+                    "units_spent": units_spent,
+                    "status": status,
+                    "detail": detail,
+                },
+            )
+            conn.commit()
+
+    def recent_runs(self, limit: int = 5) -> list[dict[str, Any]]:
+        """The last `limit` collect passes, newest first (powers `status`)."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT run_id, ran_at, captured_on, n_snapshotted, n_deactivated,
+                       units_spent, status, detail
+                FROM collect_run ORDER BY ran_at DESC LIMIT %s
+                """,
+                (limit,),
+            )
+            return list(cur.fetchall())

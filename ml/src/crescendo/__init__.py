@@ -1,6 +1,6 @@
-"""Crescendo — leakage-safe emerging-artist breakout prediction (MVP modeling spike, v0.1)."""
+"""Crescendo — leakage-safe emerging-artist ORGANIC-breakout prediction (modeling spike)."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Schema version constants. Bump when the row / artifact shape changes so that
 # dataset_version() (see dataset.py) forces a rebuild instead of mixing incompatible rows.

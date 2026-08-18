@@ -1,9 +1,15 @@
-# Crescendo — ML modeling spike (`ml/`, v0.1)
+# Crescendo — ML modeling spike (`ml/`, v0.2)
 
-The leakage-safe breakout-prediction core: discover emerging electronic artists on
-YouTube, collect a daily channel-level time series, engineer as-of momentum features, and
-evaluate whether **30-day forward relative growth** is predictable with a **temporal,
-per-fold** protocol that beats a base-rate baseline.
+The leakage-safe **organic-breakout**-prediction core: discover emerging electronic artists
+on YouTube, collect a daily channel-level time series, engineer as-of momentum features
+(incl. an unsupervised inorganic-growth detector), and evaluate whether **30-day forward
+relative growth** is predictable — **and organic** (not bought/inflated) — with a
+**temporal, per-fold** protocol that beats base-rate and naive-momentum baselines.
+
+**v0.2 (pipeline hardening):** the daily collector now runs unattended on a GitHub Actions
+cron. Each pass persists a `collect_run` health row (survives ephemeral CI logs), `crescendo
+status` surfaces the last runs, `crescendo doctor` preflights the run (config/DB/API/quota),
+and `collect` exits non-zero on a silent-failure (`empty`) pass.
 
 See [`../docs/L3-detailed-design.md`](../docs/L3-detailed-design.md) for the full blueprint.
 
@@ -22,9 +28,9 @@ src/crescendo/
   features.py   # C3: PURE as-of feature math (the unit-tested core) + C3' inorganic score
   dataset.py    # C3: cohort + cold-start + forward label -> dataset (is_breakout NULL)
   model.py      # C4: LightGBM/XGBoost artifact + predict() seam
-  evaluate.py   # C4: temporal walk-forward folds, per-fold decile labeling, precision@k
-  cli.py        # Typer CLI: discover/collect/build-dataset/train/evaluate/status
-tests/          # feature math, leakage/cold-start, fold-decile, quota
+  evaluate.py   # C4: temporal walk-forward folds, per-fold decile labeling, organic precision@k
+  cli.py        # Typer CLI: discover/collect/build-dataset/train/evaluate/status/doctor
+tests/          # feature math, leakage/cold-start, fold-decile, quota, collector status
 ```
 
 ## Quick start (local)
@@ -34,7 +40,8 @@ brew install libomp                  # macOS: OpenMP runtime for LightGBM/XGBoos
 docker compose up -d                 # Postgres:16 (from repo root)
 cd ml && uv sync                     # install pinned deps (Python 3.12)
 cp .env.example .env && $EDITOR .env # YOUTUBE_API_KEY, DATABASE_URL
-uv run crescendo status              # bootstraps DDL, prints empty counts
+uv run crescendo doctor              # preflight: config / DB / API key / quota
+uv run crescendo status              # bootstraps DDL, prints counts + recent collect runs
 uv run crescendo discover --max-artists 300
 uv run crescendo collect             # repeat daily (or use schedule.py / GH Actions cron)
 # ...after ~45 days of history (or backfill)...

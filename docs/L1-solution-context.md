@@ -7,7 +7,9 @@
 - **Status:** Draft v0.1
 - **Owner:** utkarsh-senpai
 - **Author persona reviewing this:** "Sam" — Staff ML Engineer / hiring manager, portfolio coach
-- **Date:** 2026-08-04 · **Revised:** 2026-08-10 (after competitive + ML research pass — see §11)
+- **Date:** 2026-08-04 · **Revised:** 2026-08-10 (competitive + ML research) · **2026-08-18**
+  (organic-breakout reframe after first live-data pull — see §11 and
+  `research-2026-08-18-organic-breakout.md`)
 
 ---
 
@@ -16,8 +18,9 @@
 **Crescendo** is a **free, non-gambling, non-NFT** consumer game where players draft emerging
 artists under a salary cap and score on the artists' **real-world momentum (relative
 growth)** — competing against a **transparent AI opponent** whose picks *and reasoning* are
-visible. The engine underneath is a **leakage-safe breakout-prediction model trained on a
-self-collected YouTube time-series**.
+visible. The engine underneath is a **leakage-safe ORGANIC-breakout-prediction model trained
+on a self-collected YouTube time-series** — it predicts who breaks out on *real* momentum, not
+bought/inflated growth, and *shows that its headline picks aren't pumped* (see §3, §11).
 
 **Two non-negotiable framings (owner directive, 2026-08-10):** this is a **learning &
 uniqueness** project, not a revenue play — and it must be **$0 to build and $0 to run** (free
@@ -30,9 +33,14 @@ free, browser-installable delivery on **desktop + Android** (§7).
 This is a **portfolio / resume project**. Its job is to prove one crisp engineering story
 in interviews, not to be a shippable startup. The headline claim to defend:
 
-> *"Is emerging-artist breakout predictable from momentum features on a self-collected
-> YouTube time-series — and can I prove it with a leakage-safe evaluation before building
-> any game around it?"*
+> *"Is **organic** emerging-artist breakout predictable from no-audio momentum features on a
+> self-collected YouTube time-series — proven with a leakage-safe evaluation, **and** proven
+> not to be chasing inflated (bought/bot) growth — before building any game around it?"*
+
+The "organic" qualifier is the 2026-08-18 sharpening: the #1 2025–26 music-industry story is
+inorganic-growth / AI-music fraud, but everyone detects it *at the platform level, on audio*.
+Crescendo folds an **unsupervised, no-audio inorganic-growth detector into the prediction
+target itself** (§3, §11) — an unclaimed lane.
 
 Everything else (draft, leaderboard, AI opponent) is the **product wrapper** that makes
 the ML tangible and demoable.
@@ -42,8 +50,8 @@ the ML tangible and demoable.
 | Layer | Not novel (be honest) | Crescendo's defensible edge |
 |---|---|---|
 | **Product** | Fantasy-music games exist (Vault, FanLabel) | The *combination*: consumer breakout game + a **transparent AI opponent you play against** + roster drafting, **free / non-NFT / non-gambling**. The 2026 research (§11) shows every serious rival ran the *opposite* way — into **paid cash-prize song-picking** — vacating exactly this lane. |
-| **ML** | "Predict who blows up" is a known A&R problem | Done as **leakage-aware time-series forecasting on data collected ourselves** — **artist-level momentum, no audio features** — a clean gap vs. mature audio-based "Hit Song Science" (§11), which the Spotify API wall forces and the AI-music flood makes newly interesting. The constraint *is* the story. |
-| **AI-opponent** | Human-vs-AI games exist (chess, *Deviation Game*) | **No one applies a *reason-showing* AI opponent to music prediction.** The AI both plays and *explains each pick* from the same model the scoring uses → "it plays by the rules it shows you." This is the **headline creative + learning bet** (elevated from a UX detail). |
+| **ML** | "Predict who blows up" is a known A&R problem | Done as **leakage-aware time-series forecasting on data collected ourselves** — **artist-level momentum, no audio features** — and reframed to predict **organic** breakout: an **unsupervised no-audio inorganic-growth detector folded into the target + metric** (`organic_precision@k`, `inorganic_rate@k`). A clean gap vs. mature audio-based "Hit Song Science" *and* vs. platform-level audio fraud detection (§11). The constraint *is* the story. |
+| **AI-opponent** | Human-vs-AI games exist (chess, *Deviation Game*) | **No one applies a *reason-showing* AI opponent to music prediction.** The AI both plays and *explains each pick* from the same model the scoring uses → "it plays by the rules it shows you." Post-reframe it also says *"…and this artist's `inorganic_score` is low, so I believe the growth is real"* — **authenticity as a reason the AI shows**. This is the **headline creative + learning bet** (elevated from a UX detail). |
 | **Engineering** | CRUD game backends are common | A real **two-language system** (Python ML/ingestion + Spring Boot game backend + Postgres) with **temporal-split, precision@k** evaluation over a **live self-collected pipeline**, shipped **$0 as an installable PWA** on desktop + Android (§7). |
 
 ## 4. Scope
@@ -54,10 +62,15 @@ evaluation**, before building any game infrastructure.
 
 - Ingest a YouTube time-series for a discovered set of emerging artists.
 - Engineer momentum features (growth rate, acceleration, consistency over rolling windows).
-- Define the **prediction target = relative growth rate** over a forward window.
+- Define the **prediction target = ORGANIC breakout**: top-decile relative growth over a
+  forward window **AND NOT** `suspected_inorganic` (the as-of inorganic-growth flag).
 - Train a baseline model (LightGBM/XGBoost); evaluate with **temporal split + precision@k**
-  against a **base-rate baseline**.
-- Deliverable: a notebook/report answering "predictable? by how much over base rate?"
+  against a **base-rate baseline**, reporting the authenticity-aware headline metrics
+  **`organic_precision@k`, `organic_lift`, `inorganic_rate@k`** alongside the raw ones.
+- Deliverable: a notebook/report answering "is *organic* breakout predictable? by how much
+  over base rate — and do the headline picks resist the pumped channels that fool naive
+  momentum?" (Result: **+17% organic precision, −33% inorganic contamination** vs a momentum
+  baseline — see `research-2026-08-18-organic-breakout.md` §4.)
 
 ### 4.2 Later scope (future iterations, NOT now)
 Game backend (users/auth, salary-cap draft, scoring engine, leaderboard) · minimal UI ·
@@ -168,6 +181,13 @@ the load-bearing conclusions:
 - **New design thread (creative, $0):** treat the AI-music flood as **both a breakout signal
   and an inorganic-growth data-quality risk** (bot/synthetic spikes). Pure analysis — costs
   nothing, adds a distinctive "I modeled data integrity in the wild" story. Detailed in L2/L3.
+- **2026-08-18 reframe (after first live pull):** the live cohort itself had an authenticity
+  problem (15/43 discovered channels were aggregators/reposters, not emerging artists), and the
+  research converged on inorganic-growth fraud as *the* current story — yet detected only at the
+  platform level, on audio. So the inorganic signal was **promoted from a side-feature to part
+  of the target and metric**: predict **organic** breakout and *prove the picks aren't pumped*.
+  This is a reframe, not a rebuild — `inorganic_score` already existed as a feature. See
+  `research-2026-08-18-organic-breakout.md`.
 
 **D. The YouTube API wall is real and tightening — our strategy is vindicated.**
 - Still free, 10k units/day, resets midnight PT. **Since 2026-06-01, `search.list` has its own

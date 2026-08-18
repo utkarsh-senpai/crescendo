@@ -44,14 +44,74 @@ def status(config: str = _CONFIG_OPT):
     db = Db(cfg.database_url)
     db.bootstrap()
     s = db.stats()
-    log.info("status", **s, quota_ceiling=cfg.daily_unit_ceiling, version=__version__)
-    typer.echo(
-        f"crescendo v{__version__}\n"
-        f"  artists: {s['artists_active']} active / {s['artists_total']} total\n"
-        f"  snapshots: {s['snapshots_total']} total, {s['snapshots_today']} today\n"
-        f"  history: {s['history_from']} → {s['history_to']}\n"
-        f"  quota ceiling: {cfg.daily_unit_ceiling} units/day"
-    )
+    runs = db.recent_runs(limit=5)
+    log.info("status", **s, quota_ceiling=cfg.daily_unit_ceiling, version=__version__,
+             recent_runs=len(runs))
+    lines = [
+        f"crescendo v{__version__}",
+        f"  artists: {s['artists_active']} active / {s['artists_total']} total",
+        f"  snapshots: {s['snapshots_total']} total, {s['snapshots_today']} today",
+        f"  history: {s['history_from']} → {s['history_to']}",
+        f"  quota ceiling: {cfg.daily_unit_ceiling} units/day",
+    ]
+    if runs:
+        lines.append("  recent collect runs:")
+        for r in runs:
+            lines.append(
+                f"    {r['captured_on']}  {r['status']:<14} "
+                f"{r['n_snapshotted']} snaps, {r['n_deactivated']} deactivated, "
+                f"{r['units_spent']}u"
+            )
+    else:
+        lines.append("  recent collect runs: (none yet)")
+    typer.echo("\n".join(lines))
+
+
+@app.command()
+def doctor(config: str = _CONFIG_OPT, check_api: bool = typer.Option(True, "--api/--no-api")):
+    """Preflight: config valid, DB reachable, API key live, quota headroom. Exit 1 if any fail.
+
+    Runs as the first step of the unattended GitHub Actions cron so a misconfigured run fails
+    fast and loud instead of collecting nothing and going green.
+    """
+    cfg = _boot(config)  # config load + validate already happened here (exit 2 on bad config)
+    from .db import Db
+    from .youtube import QuotaAccountant, YouTubeClient
+
+    checks: list[tuple[str, bool, str]] = [("config", True, "loaded + validated")]
+
+    # DB reachable + schema present.
+    try:
+        db = Db(cfg.database_url)
+        db.bootstrap()
+        s = db.stats()
+        checks.append(("database", True, f"{s['artists_active']} active artists"))
+    except Exception as exc:  # noqa: BLE001 — doctor reports every failure, never crashes
+        checks.append(("database", False, str(exc)))
+
+    # API key live (1 unit) — self-lookup against a known-stable channel.
+    if check_api:
+        try:
+            acct = QuotaAccountant(cfg.daily_unit_ceiling, _today_utc())
+            yt = YouTubeClient(cfg.youtube_api_key, acct)
+            # Google Developers channel — always present; proves the key authenticates.
+            stats = yt.channel_stats_batch(["UC_x5XG1OV2P6uZZ5FSM9Ttw"])
+            ok = len(stats) == 1
+            checks.append(("youtube_api", ok, "key authenticates" if ok else "no items returned"))
+        except Exception as exc:  # noqa: BLE001
+            checks.append(("youtube_api", False, str(exc)))
+    else:
+        checks.append(("youtube_api", True, "skipped (--no-api)"))
+
+    checks.append(("quota", True, f"ceiling {cfg.daily_unit_ceiling} units/day"))
+
+    all_ok = all(ok for _, ok, _ in checks)
+    for name, ok, detail in checks:
+        typer.echo(f"  [{'OK ' if ok else 'FAIL'}] {name}: {detail}")
+    log.info("doctor", ok=all_ok, checks={n: o for n, o, _ in checks})
+    if not all_ok:
+        raise typer.Exit(code=1)
+    typer.echo("doctor: all checks passed")
 
 
 @app.command()
@@ -101,8 +161,14 @@ def collect(
     typer.echo(
         f"collected {report.n_snapshotted} snapshots "
         f"({report.n_deactivated} deactivated); {report.units_spent} units spent"
+        f" [{report.status}]"
         + (" [dry-run]" if dry_run else "")
     )
+    # Fail loud on the unattended cron: active artists existed but we snapshotted none.
+    # A green CI run on a silently-broken collector is the failure mode this guards against.
+    if report.status == "empty":
+        log.error("collect.empty", active=report.n_active)
+        raise typer.Exit(code=1)
 
 
 @app.command("build-dataset")

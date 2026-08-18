@@ -43,10 +43,10 @@ keeps the door open to splitting the ML service out later (L1 §6).
 | # | Component | Responsibility | In/Out |
 |---|---|---|---|
 | C1 | **Discovery / Resolver** | Find electronic/EDM channels in the 1k–100k band; resolve to stable channel IDs; register them as tracked artists | seed playlists → `tracked_artist` rows |
-| C2 | **Snapshot Collector** | Daily: read each tracked artist's channel stats from YouTube; write immutable raw snapshots; respect quota budget | tracked artists → `raw_snapshot` rows |
+| C2 | **Snapshot Collector** | Daily: read each tracked artist's channel stats from YouTube; write immutable raw snapshots; respect quota budget. **v0.2: persists a per-run health row (`collect_run`) so the unattended cron is observable after the fact, and fails loud when active artists exist but nothing was collected.** | tracked artists → `raw_snapshot` + `collect_run` rows |
 | C3 | **Cohort & Feature Builder** | Turn raw snapshots into a leakage-safe modeling table: define cohort entry, compute momentum features (incl. the **inorganic-growth flag**, see C3′), compute the 30-day forward relative-growth label | raw snapshots → `feature_row` / dataset |
 | C3′ | **Data-Quality / Signal Integrity** *(new, 2026-08)* | A **sub-concern of C3**, not a new deployable: detect **inorganic growth** (bot/purchased/synthetic spikes — a risk amplified by the 2026 AI-music flood, see research §3). Flags suspect artist-days so the model can down-weight or exclude them, and so the flag itself becomes a feature. | snapshots → `suspected_inorganic` flag on dataset rows |
-| C4 | **Modeling & Evaluation** | Train LightGBM/XGBoost; evaluate with temporal split + precision@k vs base-rate baseline; emit metrics + report. **Exposes the `predict()` + `reasons` seam** the transparent-AI opponent uses. | dataset → model artifact + metrics report |
+| C4 | **Modeling & Evaluation** | Train LightGBM/XGBoost; evaluate with temporal split + precision@k vs base-rate baseline. **Target reframed (2026-08-18) to ORGANIC breakout** (top-decile forward growth AND NOT `suspected_inorganic`); emits authenticity-aware headline metrics (`organic_precision@k`, `organic_lift`, `inorganic_rate@k`). **Exposes the `predict()` + `reasons` seam** the transparent-AI opponent uses. | dataset → model artifact + metrics report |
 | S1 | **Postgres** | System of record: raw snapshots (immutable) + curated cohort/features | — |
 
 *(Future, dashed in diagram: **Game Backend** (Spring Boot) and **AI Opponent** — both
@@ -61,21 +61,23 @@ seed playlists ──▶ [C1 Discovery] ──▶ tracked_artist
                                          │
                      (daily, APScheduler)│
 YouTube Data API ──▶ [C2 Collector] ──▶ raw_snapshot   (immutable, append-only)
-                                         │
+                          │              + collect_run  (v0.2 per-run health audit)
                         [C3 Cohort/Feature Builder]
                           • filter to 1k–100k entry band
                           • enforce cold-start (≥~35–45d history)
                           • compute trailing momentum features
                           • [C3′] flag inorganic growth (bot/synthetic spikes)
                           • compute forward 30d relative-growth label
-                          • label breakout = cohort top-decile
                                          │
                                      dataset (curated, reproducible)
                                          │
                         [C4 Modeling & Evaluation]
                           • temporal split (train past / test future)
+                          • per-fold decile label = top-decile forward growth
+                          • ORGANIC breakout = top-decile AND NOT suspected_inorganic
                           • train LightGBM/XGBoost
-                          • precision@k vs base-rate baseline
+                          • organic_precision@k / organic_lift / inorganic_rate@k
+                            vs base-rate + momentum baselines
                                          │
                               model artifact + metrics + report notebook
 ```
@@ -120,7 +122,9 @@ snapshots in `(t, t+30d]`. C3 is where this is enforced structurally.
   - **Consistency** — variance/steadiness of recent growth.
   - **Level features** — current subs/views (as context, not the target).
 - **Label (forward, as-of `t`)** — relative growth over `(t, t+30d]`; **breakout = top-decile
-  of the cohort's forward growth** for that period.
+  of the cohort's forward growth** for that period (computed **per temporal fold**, never
+  globally — the key leakage guard). **ORGANIC breakout** (the 2026-08-18 target) additionally
+  requires the row was **NOT** `suspected_inorganic` as-of `t`.
 - **Output:** a curated, versioned `dataset` (one row per artist-per-eligible-date) with a
   clear `as_of_date` column that C4 uses for the temporal split.
 - **Reproducible:** given the immutable raw snapshots, C3 is a pure function → same dataset
@@ -148,11 +152,16 @@ snapshots in `(t, t+30d]`. C3 is where this is enforced structurally.
   interpretable via feature importance).
 - **Metrics:** **precision@k** on the ranked breakout list (does the top-k the model picks
   actually break out?), compared against a **base-rate baseline** (random / most-recent-
-  growth heuristic). Report lift over base rate.
+  growth heuristic). Report lift over base rate. **Authenticity-aware headline (2026-08-18):**
+  **`organic_precision@k`** (share of top-k picks that are *organic* breakouts),
+  **`organic_lift`**, and **`inorganic_rate@k`** (share of top-k picks flagged pumped — a
+  leaderboard we'd surface wants this LOW). The money comparison is organic precision vs a
+  naive-momentum baseline, which a pumped channel fools.
 - **Outputs:** trained model artifact, a metrics JSON, and a **report notebook** that imports
   the package and renders the story: features, split, precision@k curve, honest findings.
 - **CLI surface (illustrative, detailed in L3):** `crescendo discover`, `crescendo collect`,
-  `crescendo build-dataset`, `crescendo train`, `crescendo evaluate`.
+  `crescendo build-dataset`, `crescendo train`, `crescendo evaluate`, `crescendo status`,
+  `crescendo doctor` (v0.2 preflight for the unattended cron).
 
 ---
 
@@ -182,8 +191,12 @@ shows the player" is true by construction.
   (`uv`, Python 3.12). Any result can be regenerated.
 - **Configuration** — genre, sub-band, windows, top-decile k, cutoff date all live in config,
   not code, so the spike is re-runnable for other genres/params.
-- **Observability (light)** — structured logs for collection runs (artists snapshotted, units
-  spent, failures) and eval runs (rows, metrics). No heavy infra for MVP.
+- **Observability (light)** — structured JSON logs for collection runs (artists snapshotted,
+  units spent, failures) and eval runs (rows, metrics). **v0.2:** because the collector now runs
+  unattended on a GitHub Actions cron (ephemeral logs) for weeks until real signal matures, each
+  pass also **persists a durable `collect_run` audit row** (status ∈ ok|empty|quota_partial),
+  surfaced by `crescendo status`; a `crescendo doctor` preflight gates the cron. Still no heavy
+  infra — the DB is the audit sink.
 - **Secrets** — YouTube API key via `.env` (git-ignored), never committed.
 - **Data-quality / signal integrity** *(new)* — inorganic-growth detection (C3′) as an as-of
   feature + flag; keeps the momentum signal honest against the AI-music flood. Costs $0 (pure
