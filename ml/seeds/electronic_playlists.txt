@@ -1,0 +1,10 @@
+# Curated seed playlist / channel IDs for electronic/EDM discovery (C1).
+# One ID per line. Lines starting with '#' are comments; blank lines ignored.
+# Format: prefix the type so discovery can route the call:
+#   playlist:<PLAYLIST_ID>   -> yt.playlist_channel_ids(...)
+#   channel:<CHANNEL_ID>     -> seeded directly as a snowball root
+#
+# Replace the placeholders below with real curated IDs before running `discover`.
+# Examples (placeholders — NOT real):
+# playlist:PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# channel:UCxxxxxxxxxxxxxxxxxxxxxx

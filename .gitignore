@@ -1,6 +1,7 @@
 # Secrets / config
 .env
 .env.*
+!.env.example
 *.key
 credentials.json
 
