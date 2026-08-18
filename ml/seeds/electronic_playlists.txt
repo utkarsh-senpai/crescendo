@@ -1,10 +1,58 @@
-# Curated seed playlist / channel IDs for electronic/EDM discovery (C1).
+# Curated seed channel IDs for electronic/EDM discovery (C1).
 # One ID per line. Lines starting with '#' are comments; blank lines ignored.
 # Format: prefix the type so discovery can route the call:
 #   playlist:<PLAYLIST_ID>   -> yt.playlist_channel_ids(...)
 #   channel:<CHANNEL_ID>     -> seeded directly as a snowball root
 #
-# Replace the placeholders below with real curated IDs before running `discover`.
-# Examples (placeholders — NOT real):
-# playlist:PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# channel:UCxxxxxxxxxxxxxxxxxxxxxx
+# All entries below were verified LIVE against the YouTube Data API v3 (2026-08-18):
+# each resolves to a real, active channel inside the cohort band (1k-100k subs, video_count>0).
+# NOTE: featuredChannelsUrls is empty on all tested hubs (YouTube deprecated it), so the
+# snowball is effectively inert -- discovery is seed-driven. Seeds are direct channels only
+# (no reliable public playlist IDs found; guessed playlist IDs 404).
+
+# --- handle-verified artists (title + band + active gates passed) ---
+channel:UCU4Xu_RcWLg1fEnCcpCCxfw  # KARPE (59,400)
+channel:UCJKHRNXwJsaNIqnMTENngUQ  # Chime (44,500)
+channel:UCqkfCsmqmTZHwT6lhOeaNLA  # DEAF KEV (31,600)
+channel:UCcJcq3v3zVeYfB83zi8jCGQ  # ROY KNOX (12,900)
+channel:UCp5s8oqsQc6_2JyCOMTO42g  # Distrion (6,180)
+channel:UC1BCGXMXR6l6EQVErSBUWog  # Domastic (5,700)
+channel:UCNTVp5HYnIWfSaGijlqp2Fg  # Anixto (2,440)
+channel:UC56bxYuxr9MYLLLHmF6anww  # Facading (1,920)
+
+# --- search.list-harvested, band-filtered electronic channels ---
+channel:UCPD3O5Areq_RK4GGFkXcl9Q  # Elation (80,700)
+channel:UC2B3I6UesKFyI5E2B0QisOw  # Mokka - No Copyright Music (76,100)
+channel:UCF6-fdubXkcpELOB5sUbrWw  # HyperboltEDM (68,600)
+channel:UCmjuQVtOekOCd5u6jV0hY5w  # Electronic Producer (49,800)
+channel:UCZdC2vQmgdf97CeXU1Tq_0w  # NCS Nightcore (44,600)
+channel:UC3pcSD6_RRisNLaHGznemJA  # Artistic Maniacs (39,700)
+channel:UCQJuQY3hF4YCHlAR42A5trg  # Sharks (28,800)
+channel:UC44hbeRoCZVVMVg5z0FfIww  # 4Tune - No Copyright Music (18,000)
+channel:UCZweNIYbpezrrQv9pEtmLRg  # Vibes: NINE (17,300)
+channel:UCY0rjy8CBZ6xy9skdTCdaMQ  # Novus (15,500)
+channel:UCGg7oVO0Zwu0hDTqUqYR9Eg  # School of Electronic Music (14,500)
+channel:UCtO-7aILon8g20WgSfcO2Kw  # Abandoned (10,500)
+channel:UCreZsJxnsrYc3Lf-XH1Hj3g  # Techno And Tech House Releases (7,760)
+channel:UCIJNqMn2f33gGTl_1MgO5gA  # DVS-Projects (7,480)
+channel:UCO5EI5CbnQDf1EmEGhnExBw  # Electronic Music School (5,380)
+channel:UC7_PSYmKeYp0AMqKQrLbRIw  # CIQ Electronic Music (4,840)
+channel:UCJF_so4P9stYRfMFRX6Ljrg  # TERQA (4,340)
+channel:UCQguIFmuJhH-oyfxG2gvi1w  # Waves Electronic Music (4,020)
+channel:UCk5HawMz1_RIbbsrDdrUuWQ  # NoCopyrightSounds MARATHI (3,340)
+channel:UCTBVgJBSJvMY_ipT1VZoA0w  # CatFenix Electronic Music (3,150)
+channel:UC04rsRRTM9Vwdb9lwfTw03A  # SoundFlow85 (2,870)
+channel:UCEy1TF5e60OcXJOpaqouQiw  # JO3Y-XNG (2,860)
+channel:UCPLVvVvThbK5T7iS9IvrlUg  # DT (2,820)
+channel:UCbWpzorqcOPS2QwM_SUf2lw  # SM NCS SONG (2,770)
+channel:UCLUnoEEMlgHlDAbNaGyhZIw  # Echoes of Emotion Love (2,460)
+channel:UCEHnBH6GF7zxS-EFBkgdalg  # TKC (2,300)
+channel:UCM81NlZMWkItV-RebHfPdJg  # Dyxe Music (2,280)
+channel:UCn81_cp8Ecr3qCDNLEltF6w  # Sunset Dream Factory (2,250)
+channel:UCyHGP62kEFf_cDLe7k2129w  # Neokmu (1,820)
+channel:UCaT9KdRnMLmKvmMsoFdbvpQ  # FLOTE (1,640)
+channel:UCDMpFtA3M6FyetIGm3hnTAg  # Blissful EDM (1,510)
+channel:UCEdVZvu1KoHchPV9xAEsI5Q  # Madness Music (1,490)
+channel:UCtPgeVNce3kEIjM5dchJgBQ  # Afinity (1,250)
+channel:UCO60fyYFHOELyQ6e1J7HgNA  # SyGomn (1,130)
+channel:UChtnauWfOftiZebGeMJ75dw  # Planet Good Music (1,060)

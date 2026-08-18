@@ -3,7 +3,7 @@
 
 [genre]
 name = "electronic"
-seed_file = "seeds/electronic_playlists.txt"
+seed_file = "../seeds/electronic_playlists.txt"  # resolved relative to this config dir (ml/config)
 snowball_max_depth = 1          # bounded BFS depth for related-channel discovery
 
 [cohort]

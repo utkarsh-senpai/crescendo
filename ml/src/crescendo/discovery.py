@@ -26,6 +26,8 @@ def _parse_seeds(seed_path: Path) -> tuple[list[str], list[str]]:
         if not line or line.startswith("#"):
             continue
         kind, _, ident = line.partition(":")
+        # Strip any trailing inline comment (e.g. "channel:UC...  # Artist (subs)").
+        ident = ident.split("#", 1)[0]
         kind, ident = kind.strip().lower(), ident.strip()
         if not ident:
             continue
