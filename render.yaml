@@ -1,0 +1,21 @@
+# Render blueprint for the Crescendo predict API (serving/, v0.3).
+# Deploy: push this branch, then in the Render dashboard "New +" -> "Blueprint" and point it at
+# this repo. Render builds the root Dockerfile and runs it. Free tier = $0 (spins down when idle;
+# first request after idle has a cold start). No secrets needed — the demo model is baked in.
+services:
+  - type: web
+    name: crescendo-predict
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore          # near the Neon ap-southeast-1 db, for the later Neon-trained model
+    healthCheckPath: /health
+    autoDeploy: true           # redeploy on push to the connected branch
+    envVars:
+      # MODEL_PATH / CRESCENDO_CONFIG are baked into the image (see Dockerfile); listed here for
+      # visibility. PORT is provided by Render automatically and read by the container CMD.
+      - key: MODEL_PATH
+        value: /app/models/baked.joblib
+      - key: CRESCENDO_CONFIG
+        value: /app/ml/config/crescendo.toml
