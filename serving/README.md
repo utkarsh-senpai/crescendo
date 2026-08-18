@@ -49,4 +49,22 @@ uv run pytest -q          # reasons (pure) + service ranking + HTTP contract, ag
 uv run ruff check src tests
 ```
 
-Deploy target (later): Fly.io / Render free tier ($0), per L3 §9.
+## Deploy (Render free tier, $0)
+
+The repo root has a `Dockerfile` + `render.yaml` blueprint. The image installs `ml/` then
+`serving/` (monorepo path dep) and **bakes a deterministic synthetic model at build time**
+(`serving/scripts/bake_model.py`) — so the service is self-contained and needs no DB or secrets.
+This is a **demo** model (`dataset_version=synthetic-demo`) until real breakout signal matures
+(~late Sep 2026); swap for a Neon-trained artifact then.
+
+```bash
+# Local parity with the deployed image (build context = repo root):
+docker build -t crescendo-serving .
+docker run -p 8099:8000 crescendo-serving      # -> http://127.0.0.1:8099/health
+
+# Deploy: push, then Render dashboard -> New + -> Blueprint -> point at this repo.
+# Render builds ./Dockerfile, injects $PORT, health-checks /health. autoDeploy on push.
+```
+
+Verified: the image builds, bakes the model, and serves `/health` + `/predict` (incl. honoring
+Render's injected `$PORT`). Deploy target rationale per L3 §9.
