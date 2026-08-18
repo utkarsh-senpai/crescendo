@@ -53,6 +53,16 @@ public class GameSession {
     /** Player's realised score once the game is scored (null while DRAFTING). */
     private Double playerScore;
 
+    /** The transparent AI opponent's realised score, set at score time (null while DRAFTING). */
+    private Double opponentScore;
+
+    /**
+     * The opponent's shown "why not" snubs, encoded as {@code artistId|name|reason} lines. Small,
+     * display-only; captured at draft time so the reveal is stable. Null until the bot has drafted.
+     */
+    @Column(length = 2048)
+    private String opponentSnubs;
+
     protected GameSession() {
         // JPA
     }
@@ -107,5 +117,21 @@ public class GameSession {
 
     public void setPlayerScore(Double playerScore) {
         this.playerScore = playerScore;
+    }
+
+    public Double getOpponentScore() {
+        return opponentScore;
+    }
+
+    public void setOpponentScore(Double opponentScore) {
+        this.opponentScore = opponentScore;
+    }
+
+    public String getOpponentSnubs() {
+        return opponentSnubs;
+    }
+
+    public void setOpponentSnubs(String opponentSnubs) {
+        this.opponentSnubs = opponentSnubs;
     }
 }
