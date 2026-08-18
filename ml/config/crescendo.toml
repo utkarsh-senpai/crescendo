@@ -1,0 +1,39 @@
+# Crescendo v0.1 configuration — all modeling params live here (no literals in code).
+# Checked in: contains NO secrets (those go in .env).
+
+[genre]
+name = "electronic"
+seed_file = "../seeds/electronic_playlists.txt"  # resolved relative to this config dir (ml/config)
+snowball_max_depth = 1          # bounded BFS depth for related-channel discovery
+
+[cohort]
+subs_min = 1000
+subs_max = 100000
+min_history_days = 45           # cold-start guard (feature lookback + 30d label)
+snapshot_gap_tolerance_days = 3
+subs_max_soft_multiplier = 1.5  # soft upper guard so runaway breakouts don't dominate
+
+[features]
+short_window = 7
+long_window = 30
+consistency_window = 14
+
+[label]
+forward_days = 30
+breakout_decile = 0.10          # top 10%
+
+[eval]
+cutoff = "2026-09-15"           # temporal split date (example)
+k = "auto"                      # auto = fold's top-decile size
+walk_forward_folds = 3
+
+[quota]
+daily_unit_ceiling = 9500       # safety margin under 10k
+search_list_call_ceiling = 90   # separate ~100/day search.list bucket; we avoid it
+
+[dataquality]                   # C3′ inorganic-growth detection (2026-08)
+mode = "feature"                # "feature" | "exclude" | "both" — default never drops data silently
+inorganic_threshold = 0.8       # suspected_inorganic = inorganic_score >= this
+w_subs_jump = 0.5               # blend weights for inorganic_score
+w_subs_views_divergence = 0.3
+w_step_discontinuity = 0.2

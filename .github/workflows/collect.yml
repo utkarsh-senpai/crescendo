@@ -1,0 +1,36 @@
+# Daily unattended collector (v0.2). Activated from ml/deploy/collect.workflow.yml.
+# One run/day == one YouTube quota window. Requires repo secrets:
+#   YOUTUBE_API_KEY, DATABASE_URL (Neon Postgres connection string).
+# `doctor` runs first so a misconfigured run fails fast instead of collecting nothing.
+name: collect
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # 04:00 UTC daily
+  workflow_dispatch: {}
+
+concurrency:
+  group: collect          # never overlap two collect passes
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    env:
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+      - name: Sync deps
+        run: uv sync
+      - name: Preflight (config, DB, API key, quota)
+        run: uv run crescendo doctor
+      - name: Collect one snapshot pass
+        run: uv run crescendo collect
