@@ -3,6 +3,8 @@ package io.crescendo.game.service;
 import io.crescendo.game.domain.Feedback;
 import io.crescendo.game.repo.FeedbackRepository;
 import java.time.Instant;
+import java.util.List;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,5 +37,12 @@ public class FeedbackService {
 
     public long count() {
         return repository.count();
+    }
+
+    /** Most recent feedback first, capped. Admin-only read (see controller auth). */
+    @Transactional(readOnly = true)
+    public List<Feedback> recent(int limit) {
+        int capped = Math.max(1, Math.min(limit, 500));
+        return repository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, capped));
     }
 }

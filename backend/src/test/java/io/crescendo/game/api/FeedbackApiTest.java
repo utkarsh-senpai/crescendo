@@ -14,8 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** HTTP contract test for the v1.2 feedback endpoint: valid submit persists; bad input → 400. */
-@SpringBootTest
+/** HTTP contract test for the feedback endpoints: submit + validation + admin read auth. */
+@SpringBootTest(properties = "crescendo.admin.token=test-secret")
 @AutoConfigureMockMvc
 class FeedbackApiTest {
 
@@ -64,6 +64,29 @@ class FeedbackApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rating\":9,\"message\":\"nine stars\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void adminReadRequiresMatchingToken() throws Exception {
+        // No token → 403.
+        mvc.perform(get("/api/feedback"))
+                .andExpect(status().isForbidden());
+        // Wrong token → 403.
+        mvc.perform(get("/api/feedback").header("X-Admin-Token", "nope"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminReadWithTokenReturnsSubmittedFeedback() throws Exception {
+        mvc.perform(post("/api/feedback")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rating\":4,\"message\":\"admin-read probe\",\"name\":\"Zed\"}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(get("/api/feedback").header("X-Admin-Token", "test-secret"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].message").exists())
+                .andExpect(jsonPath("$[0].createdAt").exists());
     }
 
     private long readCount() throws Exception {
