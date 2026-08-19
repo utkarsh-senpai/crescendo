@@ -137,6 +137,36 @@ class GameServiceTest {
     }
 
     @Test
+    void draftAlsoDraftsTheTransparentAiOpponent() {
+        GameView game = gameService.createGame("Ada");
+        GameView drafted = gameService.draft(game.gameId(), List.of(105L, 104L, 106L, 107L, 108L));
+
+        assertThat(drafted.opponent()).isNotNull();
+        assertThat(drafted.opponent().name()).isEqualTo("Crescendo AI");
+        assertThat(drafted.opponent().roster()).hasSize(5);
+        assertThat(drafted.opponent().salarySpent()).isLessThanOrEqualTo(100);
+        // Every AI pick shows its rationale (transparency).
+        assertThat(drafted.opponent().roster()).allSatisfy(p ->
+                assertThat(p.rationale()).isNotBlank());
+        // The AI should not draft the inorganic artists (109/110 scored 0.10 by the stub).
+        assertThat(drafted.opponent().roster())
+                .extracting(io.crescendo.game.api.GameDtos.OpponentEntry::artistId)
+                .doesNotContain(109L, 110L);
+        // And it should show at least one "why not" snub.
+        assertThat(drafted.opponent().snubs()).isNotEmpty();
+    }
+
+    @Test
+    void scoreSetsOpponentScoreAndOutcome() {
+        GameView game = gameService.createGame("Ada");
+        gameService.draft(game.gameId(), List.of(101L, 102L, 103L, 104L, 105L)); // strong organic
+        GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
+
+        assertThat(scored.opponent().score()).isNotNull();
+        assertThat(scored.outcome()).isIn("PLAYER_WINS", "AI_WINS", "TIE");
+    }
+
+    @Test
     void leaderboardRanksScoredGamesByScoreDescending() {
         GameView g1 = gameService.createGame("HighScorer");
         gameService.draft(g1.gameId(), List.of(101L, 102L, 103L, 104L, 105L)); // strong organic

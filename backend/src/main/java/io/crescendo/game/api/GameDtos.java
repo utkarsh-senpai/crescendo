@@ -46,6 +46,33 @@ public final class GameDtos {
             Double realisedGrowth30d) {
     }
 
+    /** One of the transparent AI opponent's picks, carrying its shown rationale. */
+    public record OpponentEntry(
+            long artistId,
+            String name,
+            int salaryPaid,
+            Double draftBreakoutScore,
+            List<String> draftReasons,
+            String rationale,
+            Double realisedGrowth30d) {
+    }
+
+    /** An artist the AI opponent passed on, with the reason shown to the player. */
+    public record OpponentSnub(long artistId, String name, String reason) {
+    }
+
+    /**
+     * The transparent AI opponent's side of the game: its roster (with per-pick rationale), the
+     * artists it passed on and why, its salary spend, and its realised score once scored.
+     */
+    public record OpponentView(
+            String name,
+            int salarySpent,
+            Double score,
+            List<OpponentEntry> roster,
+            List<OpponentSnub> snubs) {
+    }
+
     public record GameView(
             long gameId,
             String playerName,
@@ -56,7 +83,9 @@ public final class GameDtos {
             LocalDate scoreAsOfDate,
             GameSession.Status status,
             Double playerScore,
-            List<RosterEntry> roster) {
+            List<RosterEntry> roster,
+            OpponentView opponent,
+            String outcome) {
     }
 
     public record ScoreRequest(LocalDate scoreAsOfDate) {
