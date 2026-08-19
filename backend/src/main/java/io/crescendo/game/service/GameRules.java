@@ -19,6 +19,14 @@ public class GameRules {
     private LocalDate draftAsOfDate = LocalDate.parse("2026-07-01");
     private LocalDate scoreAsOfDate = LocalDate.parse("2026-08-01");
 
+    /**
+     * v1.4 no-op switch: when true, the game scores on REAL momentum collected by the daily cron
+     * instead of the seeded synthetic snapshots. Default false — real history isn't mature yet
+     * (~weeks of daily collection needed), so today it no-ops to the synthetic-demo behaviour.
+     * Flip to true (crescendo.game.use-real-momentum) once the cron has enough real snapshots.
+     */
+    private boolean useRealMomentum = false;
+
     public int getSalaryCap() {
         return salaryCap;
     }
@@ -49,5 +57,13 @@ public class GameRules {
 
     public void setScoreAsOfDate(LocalDate scoreAsOfDate) {
         this.scoreAsOfDate = scoreAsOfDate;
+    }
+
+    public boolean isUseRealMomentum() {
+        return useRealMomentum;
+    }
+
+    public void setUseRealMomentum(boolean useRealMomentum) {
+        this.useRealMomentum = useRealMomentum;
     }
 }

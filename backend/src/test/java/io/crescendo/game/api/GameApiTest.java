@@ -65,14 +65,14 @@ class GameApiTest {
 
         mvc.perform(get("/api/games/{id}/board", gameId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artists.length()").value(12))
+                .andExpect(jsonPath("$.artists.length()").value(15))
                 .andExpect(jsonPath("$.artists[0].breakoutScore").value(0.5));
 
         mvc.perform(post("/api/games/{id}/draft", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"artistIds\":[508,509,510,511,512]}"))
+                        .content("{\"artistIds\":[511,512,513,514,515]}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.salarySpent").value(63))
+                .andExpect(jsonPath("$.salarySpent").value(60))
                 .andExpect(jsonPath("$.roster.length()").value(5))
                 // The transparent AI opponent drafts off the same board and shows its reasoning.
                 .andExpect(jsonPath("$.opponent.name").value("Crescendo AI"))

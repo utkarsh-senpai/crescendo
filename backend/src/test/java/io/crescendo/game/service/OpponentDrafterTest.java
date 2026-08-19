@@ -86,6 +86,39 @@ class OpponentDrafterTest {
     }
 
     @Test
+    void picksHighestTotalScoreRosterUnderCap() {
+        // 5 artists; cap forces leaving one out. The bot should keep the 4 highest-score organic
+        // artists + the cheap one, dropping the expensive low-score artist — a real win-seeking team.
+        List<Candidate> pool = List.of(
+                c(1, 24, 0.90, false),  // high score, pricey
+                c(2, 22, 0.85, false),
+                c(3, 20, 0.80, false),
+                c(4, 18, 0.75, false),
+                c(5, 24, 0.20, false),  // pricey but weak — should be dropped
+                c(6, 10, 0.60, false)); // cheap, decent — lets the roster fit
+        Result r = OpponentDrafter.draft(pool, 100, 5);
+        assertThat(r.roster()).hasSize(5);
+        assertThat(r.roster().stream().mapToInt(OpponentDrafter.Selection::salary).sum())
+                .isLessThanOrEqualTo(100);
+        // The weak-but-pricey artist (id 5) must be snubbed, not drafted.
+        assertThat(r.roster()).extracting(OpponentDrafter.Selection::artistId).doesNotContain(5L);
+        // Total score should be the max achievable (0.90+0.85+0.80+0.75+0.60 = 3.90).
+        double total = r.roster().stream()
+                .mapToDouble(s -> s.score() == null ? 0 : s.score()).sum();
+        assertThat(total).isCloseTo(3.90, org.assertj.core.data.Offset.offset(1e-9));
+    }
+
+    @Test
+    void excludesInorganicFromRoster() {
+        List<Candidate> pool = List.of(
+                c(1, 24, 0.99, true),   // top raw score but inorganic — must NOT be drafted
+                c(2, 20, 0.70, false), c(3, 18, 0.65, false),
+                c(4, 16, 0.60, false), c(5, 14, 0.55, false), c(6, 12, 0.50, false));
+        Result r = OpponentDrafter.draft(pool, 100, 5);
+        assertThat(r.roster()).extracting(OpponentDrafter.Selection::artistId).doesNotContain(1L);
+    }
+
+    @Test
     void throwsWhenNoLegalRosterFits() {
         List<Candidate> pool = List.of(
                 c(1, 50, 0.9, false), c(2, 50, 0.9, false), c(3, 50, 0.9, false));

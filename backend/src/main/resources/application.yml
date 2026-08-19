@@ -20,6 +20,9 @@ crescendo:
   predict:
     # The live v0.3 predict seam (Render free tier). Override with crescendo.predict.base-url.
     base-url: https://crescendo-predict.onrender.com
+  youtube:
+    # Live-stats API key (v1.4). Reads YOUTUBE_API_KEY env; blank → real-time feature disabled.
+    api-key: ${YOUTUBE_API_KEY:}
   game:
     salary-cap: 100
     roster-size: 5

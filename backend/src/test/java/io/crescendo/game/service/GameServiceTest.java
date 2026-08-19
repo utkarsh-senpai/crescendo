@@ -75,10 +75,10 @@ class GameServiceTest {
 
     @Test
     void draftBoardIsOrderedBySeamScoreDescending() {
-        GameView game = gameService.createGame("Ada"); // default league POP (ids 501–512)
+        GameView game = gameService.createGame("Ada"); // default league POP (ids 501–515)
         DraftBoardResponse board = gameService.draftBoard(game.gameId());
 
-        assertThat(board.artists()).hasSize(12);
+        assertThat(board.artists()).hasSize(15);
         // Ordered by seam score descending (highest first).
         assertThat(board.artists().get(0).breakoutScore())
                 .isGreaterThanOrEqualTo(board.artists().get(board.artists().size() - 1).breakoutScore());
@@ -113,17 +113,17 @@ class GameServiceTest {
     @Test
     void fullDraftThenScoreProducesRelativeGrowthScore() {
         GameView game = gameService.createGame("Katherine");
-        // A legal roster within cap: 508+509+510+511+512 = 15+14+13+11+10 = 63 <= 100.
-        List<Long> roster = List.of(508L, 509L, 510L, 511L, 512L);
+        // A legal roster within cap: 511+512+513+514+515 = 14+13+12+11+10 = 60 <= 100.
+        List<Long> roster = List.of(511L, 512L, 513L, 514L, 515L);
         GameView drafted = gameService.draft(game.gameId(), roster);
-        assertThat(drafted.salarySpent()).isEqualTo(63);
+        assertThat(drafted.salarySpent()).isEqualTo(60);
         assertThat(drafted.roster()).hasSize(5);
         assertThat(drafted.roster().get(0).draftReasons()).isNotEmpty();
 
         GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
         assertThat(scored.status()).isEqualTo(GameSession.Status.SCORED);
-        // Mean realised growth_30d for 508,509,510,511,512 = (.199+.172+.145+.117+.09)/5 = .1446
-        assertThat(scored.playerScore()).isCloseTo(0.1446, org.assertj.core.data.Offset.offset(1e-6));
+        // Mean realised growth_30d for 511,512,513,514,515 = (.176+.154+.133+.111+.09)/5 = .1328
+        assertThat(scored.playerScore()).isCloseTo(0.1328, org.assertj.core.data.Offset.offset(1e-6));
     }
 
     @Test
@@ -179,10 +179,10 @@ class GameServiceTest {
         DraftBoardResponse board = gameService.draftBoard(game.gameId());
 
         assertThat(board.league()).isEqualTo(io.crescendo.game.domain.League.BOLLYWOOD);
-        assertThat(board.artists()).hasSize(9);
-        // Every artist on the board is a Bollywood id (701–709); no cross-league leakage.
+        assertThat(board.artists()).hasSize(12);
+        // Every artist on the board is a Bollywood id (701–712); no cross-league leakage.
         assertThat(board.artists()).allSatisfy(a ->
-                assertThat(a.artistId()).isBetween(701L, 709L));
+                assertThat(a.artistId()).isBetween(701L, 712L));
     }
 
     @Test

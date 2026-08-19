@@ -28,6 +28,10 @@ public class Artist {
     @Column(nullable = false)
     private String name;
 
+    /** YouTube channel id — enables real-time stat lookups (v1.4). Nullable for legacy rows. */
+    @Column(name = "channel_id")
+    private String channelId;
+
     @Column(nullable = false)
     private String genre;
 
@@ -44,9 +48,11 @@ public class Artist {
         // JPA
     }
 
-    public Artist(Long artistId, String name, String genre, League league, int salary) {
+    public Artist(Long artistId, String name, String channelId, String genre, League league,
+                  int salary) {
         this.artistId = artistId;
         this.name = name;
+        this.channelId = channelId;
         this.genre = genre;
         this.league = league;
         this.salary = salary;
@@ -58,6 +64,10 @@ public class Artist {
 
     public String getName() {
         return name;
+    }
+
+    public String getChannelId() {
+        return channelId;
     }
 
     public String getGenre() {
