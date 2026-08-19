@@ -73,14 +73,20 @@ class GameApiTest {
                         .content("{\"artistIds\":[105,104,106,107,108]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.salarySpent").value(64))
-                .andExpect(jsonPath("$.roster.length()").value(5));
+                .andExpect(jsonPath("$.roster.length()").value(5))
+                // The transparent AI opponent drafts off the same board and shows its reasoning.
+                .andExpect(jsonPath("$.opponent.name").value("Crescendo AI"))
+                .andExpect(jsonPath("$.opponent.roster.length()").value(5))
+                .andExpect(jsonPath("$.opponent.roster[0].rationale").isNotEmpty());
 
         mvc.perform(post("/api/games/{id}/score", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"scoreAsOfDate\":\"2026-08-01\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SCORED"))
-                .andExpect(jsonPath("$.playerScore").isNumber());
+                .andExpect(jsonPath("$.playerScore").isNumber())
+                .andExpect(jsonPath("$.opponent.score").isNumber())
+                .andExpect(jsonPath("$.outcome").isNotEmpty());
 
         mvc.perform(get("/api/leaderboard"))
                 .andExpect(status().isOk())
