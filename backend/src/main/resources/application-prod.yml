@@ -1,0 +1,40 @@
+# Production profile — Neon Postgres (free tier) on Render.
+#
+# Activate with SPRING_PROFILES_ACTIVE=prod (set in render.yaml). DATABASE_URL is injected as a
+# Render env var; use Neon's POOLED endpoint (hostname has a "-pooler" suffix) with sslmode=require.
+# Example: jdbc:postgresql://ep-xxx-pooler.ap-southeast-1.aws.neon.tech/crescendo?sslmode=require
+#
+# Hikari is tuned for Neon's scale-to-zero (suspends after ~5 min idle): min-idle 0 so the pool
+# drains and doesn't keep the DB awake / burn CU-hours; max-lifetime < 5 min so we never hand out a
+# connection Neon has already killed on suspend; connection-timeout 15s to ride out the wake latency
+# instead of 500-ing the first request after idle.
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      connection-timeout: 15000
+      idle-timeout: 60000
+      max-lifetime: 300000
+      keepalive-time: 120000
+  jpa:
+    hibernate:
+      # update: create tables on first boot, keep data across deploys/spin-downs (H2 uses create-drop).
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  h2:
+    console:
+      enabled: false
+
+# The demo dataset is re-seeded each boot from DataSeeder; artists are reference data, so seeding
+# stays on in prod. Game sessions + feedback are the rows that persist.
+crescendo:
+  seed:
+    enabled: true
