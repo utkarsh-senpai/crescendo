@@ -65,14 +65,14 @@ class GameApiTest {
 
         mvc.perform(get("/api/games/{id}/board", gameId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artists.length()").value(10))
+                .andExpect(jsonPath("$.artists.length()").value(12))
                 .andExpect(jsonPath("$.artists[0].breakoutScore").value(0.5));
 
         mvc.perform(post("/api/games/{id}/draft", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"artistIds\":[105,104,106,107,108]}"))
+                        .content("{\"artistIds\":[508,509,510,511,512]}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.salarySpent").value(64))
+                .andExpect(jsonPath("$.salarySpent").value(63))
                 .andExpect(jsonPath("$.roster.length()").value(5))
                 // The transparent AI opponent drafts off the same board and shows its reasoning.
                 .andExpect(jsonPath("$.opponent.name").value("Crescendo AI"))
@@ -103,7 +103,7 @@ class GameApiTest {
 
         mvc.perform(post("/api/games/{id}/draft", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"artistIds\":[109,101,110,102,103]}"))
+                        .content("{\"artistIds\":[501,502,503,504,505]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.containsString("exceeds cap")));
     }

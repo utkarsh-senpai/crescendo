@@ -35,6 +35,11 @@ public class GameSession {
     @Column(nullable = false)
     private String playerName;
 
+    /** The league this game is scoped to; the whole draft uses only this pool's artists. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private League league;
+
     @Column(nullable = false)
     private int salaryCap;
 
@@ -67,8 +72,10 @@ public class GameSession {
         // JPA
     }
 
-    public GameSession(String playerName, int salaryCap, int rosterSize, LocalDate draftAsOfDate) {
+    public GameSession(String playerName, League league, int salaryCap, int rosterSize,
+                       LocalDate draftAsOfDate) {
         this.playerName = playerName;
+        this.league = league;
         this.salaryCap = salaryCap;
         this.rosterSize = rosterSize;
         this.draftAsOfDate = draftAsOfDate;
@@ -81,6 +88,10 @@ public class GameSession {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public League getLeague() {
+        return league;
     }
 
     public int getSalaryCap() {

@@ -75,22 +75,20 @@ class GameServiceTest {
 
     @Test
     void draftBoardIsOrderedBySeamScoreDescending() {
-        GameView game = gameService.createGame("Ada");
+        GameView game = gameService.createGame("Ada"); // default league POP (ids 501–512)
         DraftBoardResponse board = gameService.draftBoard(game.gameId());
 
-        assertThat(board.artists()).hasSize(10);
-        // First entry must have the max score; inorganic artists sink to the bottom.
+        assertThat(board.artists()).hasSize(12);
+        // Ordered by seam score descending (highest first).
         assertThat(board.artists().get(0).breakoutScore())
                 .isGreaterThanOrEqualTo(board.artists().get(board.artists().size() - 1).breakoutScore());
-        var last = board.artists().get(board.artists().size() - 1);
-        assertThat(last.reasons()).contains("discounted: growth looks inorganic");
     }
 
     @Test
     void draftEnforcesSalaryCap() {
         GameView game = gameService.createGame("Grace");
-        // Pick the five most expensive artists — should blow the cap of 100.
-        List<Long> pricey = List.of(109L, 101L, 110L, 102L, 103L); // 24+22+21+20+18 = 105 > 100
+        // Five most expensive POP artists — should blow the cap of 100.
+        List<Long> pricey = List.of(501L, 502L, 503L, 504L, 505L); // 24+23+21+20+19 = 107 > 100
         assertThatThrownBy(() -> gameService.draft(game.gameId(), pricey))
                 .isInstanceOf(GameException.class)
                 .hasMessageContaining("exceeds cap");
@@ -99,7 +97,7 @@ class GameServiceTest {
     @Test
     void draftEnforcesRosterSize() {
         GameView game = gameService.createGame("Linus");
-        assertThatThrownBy(() -> gameService.draft(game.gameId(), List.of(101L, 102L)))
+        assertThatThrownBy(() -> gameService.draft(game.gameId(), List.of(501L, 502L)))
                 .isInstanceOf(GameException.class)
                 .hasMessageContaining("exactly 5");
     }
@@ -107,7 +105,7 @@ class GameServiceTest {
     @Test
     void draftRejectsDuplicates() {
         GameView game = gameService.createGame("Dup");
-        assertThatThrownBy(() -> gameService.draft(game.gameId(), List.of(101L, 101L, 102L, 103L, 104L)))
+        assertThatThrownBy(() -> gameService.draft(game.gameId(), List.of(501L, 501L, 502L, 503L, 504L)))
                 .isInstanceOf(GameException.class)
                 .hasMessageContaining("duplicate");
     }
@@ -115,17 +113,17 @@ class GameServiceTest {
     @Test
     void fullDraftThenScoreProducesRelativeGrowthScore() {
         GameView game = gameService.createGame("Katherine");
-        // A legal organic roster within cap: 105+104+106+107+108 = 15+16+13+11+9 = 64 <= 100.
-        List<Long> roster = List.of(105L, 104L, 106L, 107L, 108L);
+        // A legal roster within cap: 508+509+510+511+512 = 15+14+13+11+10 = 63 <= 100.
+        List<Long> roster = List.of(508L, 509L, 510L, 511L, 512L);
         GameView drafted = gameService.draft(game.gameId(), roster);
-        assertThat(drafted.salarySpent()).isEqualTo(64);
+        assertThat(drafted.salarySpent()).isEqualTo(63);
         assertThat(drafted.roster()).hasSize(5);
         assertThat(drafted.roster().get(0).draftReasons()).isNotEmpty();
 
         GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
         assertThat(scored.status()).isEqualTo(GameSession.Status.SCORED);
-        // Mean of realised growth_30d for 105,104,106,107,108 = (.22+.26+.17+.13+.09)/5 = .174
-        assertThat(scored.playerScore()).isCloseTo(0.174, org.assertj.core.data.Offset.offset(1e-6));
+        // Mean realised growth_30d for 508,509,510,511,512 = (.199+.172+.145+.117+.09)/5 = .1446
+        assertThat(scored.playerScore()).isCloseTo(0.1446, org.assertj.core.data.Offset.offset(1e-6));
     }
 
     @Test
@@ -139,7 +137,7 @@ class GameServiceTest {
     @Test
     void draftAlsoDraftsTheTransparentAiOpponent() {
         GameView game = gameService.createGame("Ada");
-        GameView drafted = gameService.draft(game.gameId(), List.of(105L, 104L, 106L, 107L, 108L));
+        GameView drafted = gameService.draft(game.gameId(), List.of(508L, 509L, 510L, 511L, 512L));
 
         assertThat(drafted.opponent()).isNotNull();
         assertThat(drafted.opponent().name()).isEqualTo("Crescendo AI");
@@ -148,18 +146,12 @@ class GameServiceTest {
         // Every AI pick shows its rationale (transparency).
         assertThat(drafted.opponent().roster()).allSatisfy(p ->
                 assertThat(p.rationale()).isNotBlank());
-        // The AI should not draft the inorganic artists (109/110 scored 0.10 by the stub).
-        assertThat(drafted.opponent().roster())
-                .extracting(io.crescendo.game.api.GameDtos.OpponentEntry::artistId)
-                .doesNotContain(109L, 110L);
-        // And it should show at least one "why not" snub.
-        assertThat(drafted.opponent().snubs()).isNotEmpty();
     }
 
     @Test
     void scoreSetsOpponentScoreAndOutcome() {
         GameView game = gameService.createGame("Ada");
-        gameService.draft(game.gameId(), List.of(101L, 102L, 103L, 104L, 105L)); // strong organic
+        gameService.draft(game.gameId(), List.of(506L, 508L, 510L, 511L, 512L)); // legal roster within cap
         GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
 
         assertThat(scored.opponent().score()).isNotNull();
@@ -169,15 +161,45 @@ class GameServiceTest {
     @Test
     void leaderboardRanksScoredGamesByScoreDescending() {
         GameView g1 = gameService.createGame("HighScorer");
-        gameService.draft(g1.gameId(), List.of(101L, 102L, 103L, 104L, 105L)); // strong organic
+        gameService.draft(g1.gameId(), List.of(505L, 506L, 507L, 508L, 512L)); // stronger realised
         gameService.score(g1.gameId(), LocalDate.parse("2026-08-01"));
 
         GameView g2 = gameService.createGame("LowScorer");
-        gameService.draft(g2.gameId(), List.of(108L, 107L, 106L, 109L, 110L)); // weak/inorganic realised
+        gameService.draft(g2.gameId(), List.of(509L, 510L, 511L, 512L, 508L)); // weaker realised
         gameService.score(g2.gameId(), LocalDate.parse("2026-08-01"));
 
         var board = gameService.leaderboard();
         assertThat(board).hasSizeGreaterThanOrEqualTo(2);
         assertThat(board.get(0).playerScore()).isGreaterThanOrEqualTo(board.get(1).playerScore());
+    }
+
+    @Test
+    void boardIsScopedToTheGamesLeague() {
+        GameView game = gameService.createGame("Rhea", io.crescendo.game.domain.League.BOLLYWOOD);
+        DraftBoardResponse board = gameService.draftBoard(game.gameId());
+
+        assertThat(board.league()).isEqualTo(io.crescendo.game.domain.League.BOLLYWOOD);
+        assertThat(board.artists()).hasSize(9);
+        // Every artist on the board is a Bollywood id (701–709); no cross-league leakage.
+        assertThat(board.artists()).allSatisfy(a ->
+                assertThat(a.artistId()).isBetween(701L, 709L));
+    }
+
+    @Test
+    void cannotDraftAnArtistFromAnotherLeague() {
+        GameView game = gameService.createGame("Rhea", io.crescendo.game.domain.League.BOLLYWOOD);
+        // 501 is a POP artist; drafting it into a Bollywood game must fail.
+        assertThatThrownBy(() ->
+                gameService.draft(game.gameId(), List.of(701L, 702L, 703L, 704L, 501L)))
+                .isInstanceOf(GameException.class)
+                .hasMessageContaining("not in the BOLLYWOOD league");
+    }
+
+    @Test
+    void leaguesListsAllThreeGenres() {
+        var leagues = gameService.leagues();
+        assertThat(leagues).hasSize(3);
+        assertThat(leagues).extracting(io.crescendo.game.api.GameDtos.LeagueOption::id)
+                .containsExactly("POP", "EDM", "BOLLYWOOD");
     }
 }

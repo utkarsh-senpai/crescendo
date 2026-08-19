@@ -2,6 +2,8 @@ package io.crescendo.game.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -29,6 +31,11 @@ public class Artist {
     @Column(nullable = false)
     private String genre;
 
+    /** The draftable pool this artist belongs to; a game is scoped to one league. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private League league;
+
     /** Salary-cap cost of drafting this artist (credits). */
     @Column(nullable = false)
     private int salary;
@@ -37,10 +44,11 @@ public class Artist {
         // JPA
     }
 
-    public Artist(Long artistId, String name, String genre, int salary) {
+    public Artist(Long artistId, String name, String genre, League league, int salary) {
         this.artistId = artistId;
         this.name = name;
         this.genre = genre;
+        this.league = league;
         this.salary = salary;
     }
 
@@ -54,6 +62,10 @@ public class Artist {
 
     public String getGenre() {
         return genre;
+    }
+
+    public League getLeague() {
+        return league;
     }
 
     public int getSalary() {
