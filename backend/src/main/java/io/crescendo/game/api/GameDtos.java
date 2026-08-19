@@ -1,6 +1,7 @@
 package io.crescendo.game.api;
 
 import io.crescendo.game.domain.GameSession;
+import io.crescendo.game.domain.League;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
@@ -12,7 +13,12 @@ public final class GameDtos {
     private GameDtos() {
     }
 
-    public record CreateGameRequest(@NotBlank String playerName) {
+    /** League is optional on the wire; null defaults to EMERGING (back-compat with v1.2 clients). */
+    public record CreateGameRequest(@NotBlank String playerName, League league) {
+    }
+
+    /** One selectable league for the home-screen picker. */
+    public record LeagueOption(String id, String label, String band, String tagline) {
     }
 
     /** One artist as shown on the draft board, enriched with the seam's score + reasons. */
@@ -28,6 +34,7 @@ public final class GameDtos {
 
     public record DraftBoardResponse(
             long gameId,
+            League league,
             int salaryCap,
             int rosterSize,
             LocalDate draftAsOfDate,
@@ -76,6 +83,7 @@ public final class GameDtos {
     public record GameView(
             long gameId,
             String playerName,
+            League league,
             int salaryCap,
             int salarySpent,
             int rosterSize,

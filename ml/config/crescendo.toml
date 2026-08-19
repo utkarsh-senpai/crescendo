@@ -5,6 +5,10 @@
 name = "electronic"
 seed_file = "../seeds/electronic_playlists.txt"  # resolved relative to this config dir (ml/config)
 snowball_max_depth = 1          # bounded BFS depth for related-channel discovery
+# v1.3 pivot: the daily cron now tracks the curated top-artist pool in ../seeds/genre_artists.txt
+# (Pop/EDM/Bollywood) via `crescendo seed-genres`, which IGNORES the [cohort] band below (those are
+# top artists, millions of subs). The [cohort] band still governs the legacy emerging-artist
+# `discover` path, kept for later.
 
 [cohort]
 subs_min = 1000

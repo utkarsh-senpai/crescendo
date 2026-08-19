@@ -362,3 +362,29 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 .star { background:none; border:none; cursor:pointer; font-size:1.8rem; line-height:1; color: var(--text-low); transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); padding:0 .1rem; }
 .star:hover { transform: scale(1.15); }
 .star.on { color: var(--warn); text-shadow: 0 0 12px rgba(255,194,75,.5); }
+
+/* ============================================================================
+   v1.3 — league picker (one draftable pool per game, no cross-select).
+   ============================================================================ */
+.league-picker {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem;
+  max-width: 900px; margin: 1.5rem auto 0;
+}
+@media (max-width: 720px) { .league-picker { grid-template-columns: repeat(2, 1fr); } }
+.league-card {
+  display: flex; flex-direction: column; gap: .3rem; text-align: left; cursor: pointer;
+  padding: .9rem 1rem; border-radius: var(--radius-sm); background: var(--bg-2);
+  border: 1px solid var(--border); color: var(--text-hi);
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .league-card:hover { transform: translateY(-3px); border-color: var(--border-hi); }
+}
+.league-card.on {
+  border-color: var(--accent); background: rgba(52,226,155,.08);
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 0 22px var(--accent-glow);
+}
+.league-card .lc-label { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--accent); }
+.league-card.on .lc-label { color: var(--accent); }
+.league-card .lc-band { font-size: var(--fs-small); color: var(--text-mid); text-transform: uppercase; letter-spacing: .04em; }
+.league-card .lc-tag { font-size: var(--fs-small); color: var(--text-low); line-height: 1.35; margin-top: .1rem; }

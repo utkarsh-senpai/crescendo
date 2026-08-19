@@ -128,6 +128,72 @@ def discover(
     )
 
 
+def _parse_genre_pool(seed_path: Path) -> list[tuple[str, str, str]]:
+    """Parse the ``GENRE|channel_id|Name`` pool file → [(genre, channel_id, name), ...].
+
+    This is the v1.3 top-artist pool format (see ml/seeds/genre_artists.txt). Ignores comment
+    and blank lines and any trailing ``# ...`` inline note on a row.
+    """
+    out: list[tuple[str, str, str]] = []
+    if not seed_path.exists():
+        return out
+    for raw in seed_path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        line = line.split("#", 1)[0].strip()
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) >= 3 and parts[0] and parts[1]:
+            out.append((parts[0].upper(), parts[1], parts[2]))
+    return out
+
+
+def load_genre_pool(cfg: Config, db: Db, yt: YouTubeClient, pool_path: Path) -> DiscoverReport:
+    """Seed the tracked set from a curated per-genre pool of REAL channels (v1.3 pivot).
+
+    Unlike :func:`discover`, this does NOT apply the 1k–100k subscriber band — the pool is
+    intentionally top artists (millions of subs). Channels are batch-resolved (1 unit/50) for
+    their current stats, tagged with their genre, and upserted append-only (idempotent re-runs).
+    The daily ``collect`` pass then snapshots them like any other active artist.
+    """
+    pool = _parse_genre_pool(pool_path)
+    by_channel = {cid: (genre, name) for genre, cid, name in pool}
+    channel_ids = list(by_channel.keys())
+
+    accepted: list[TrackedArtist] = []
+    try:
+        for i in range(0, len(channel_ids), 50):
+            chunk = channel_ids[i : i + 50]
+            for stats in yt.channel_stats_batch(chunk):
+                genre, _name = by_channel.get(stats.channel_id, (cfg.genre_name, stats.title))
+                accepted.append(
+                    TrackedArtist(
+                        artist_id=0,
+                        channel_id=stats.channel_id,
+                        title=stats.title,
+                        genre=genre.lower(),
+                        subs_at_entry=stats.subscribers,
+                        source="genre_pool",
+                        discovered_at=stats.fetched_at,
+                        is_active=True,
+                    )
+                )
+    except QuotaExceeded as exc:
+        log.warning("genre_pool.quota_stop", op=exc.op, remaining=exc.remaining_units,
+                    accepted=len(accepted))
+
+    written = db.upsert_artists(accepted)
+    log.info("genre_pool.done", requested=len(channel_ids), resolved=len(accepted),
+             written=written, units_spent=yt.units_spent)
+    return DiscoverReport(
+        n_seed=len(accepted),
+        n_snowball=0,
+        n_rejected_band=0,
+        n_rejected_inactive=0,
+        units_spent=yt.units_spent,
+    )
+
+
 def _batch_consider(yt, cids, seen, accepted, max_artists, accept_fn, source):
     """Resolve candidate channel IDs in batches of 50 (1 unit/50) and accept in order."""
     to_fetch = [c for c in cids if c not in seen]
