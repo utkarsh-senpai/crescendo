@@ -33,3 +33,7 @@ services:
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
+      # Shared secret enabling the admin feedback read (GET /api/feedback, X-Admin-Token header).
+      # Set to any long random string; leave unset to keep the read endpoint disabled.
+      - key: CRESCENDO_ADMIN_TOKEN
+        sync: false
