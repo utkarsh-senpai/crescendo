@@ -28,6 +28,16 @@ crescendo:
   seed:
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

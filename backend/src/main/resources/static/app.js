@@ -63,7 +63,14 @@ function miniEq(n = 5) {
 /* ---- flow: new game ---- */
 async function startGame() {
   const name = ($('#playerName').value || '').trim() || 'Scout';
-  $('#startBtn').disabled = true;
+  const btn = $('#startBtn');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  // On the free tier the API + model can be cold-starting; escalate the message so a first-time
+  // visitor sees progress instead of a dead button.
+  btn.textContent = 'Warming up…';
+  const slow = setTimeout(() => { btn.textContent = 'Waking the model up…'; }, 4000);
+  const slower = setTimeout(() => { btn.textContent = 'Almost there (free-tier cold start)…'; }, 12000);
   try {
     state.game = await api('/games', { method: 'POST', body: JSON.stringify({ playerName: name }) });
     state.selected.clear();
@@ -72,7 +79,9 @@ async function startGame() {
   } catch (e) {
     toast('Could not start game: ' + e.message);
   } finally {
-    $('#startBtn').disabled = false;
+    clearTimeout(slow); clearTimeout(slower);
+    btn.disabled = false;
+    btn.textContent = origText;
   }
 }
 
@@ -269,6 +278,108 @@ $('#playerName').addEventListener('keydown', (e) => { if (e.key === 'Enter') sta
 $('#toLeaderboard').addEventListener('click', () => loadLeaderboard());
 $('#draftBtn').addEventListener('click', lockRoster);
 $('#scoreBtn').addEventListener('click', scoreGame);
+
+/* ============================================================================
+   v1.2 — modals (how-to-play + feedback), curated "started small" showcase,
+   feedback submit. All vanilla, no deps.
+   ============================================================================ */
+let lastFocused = null;
+function openModal(name) {
+  const m = $('#modal-' + name);
+  if (!m) return;
+  lastFocused = document.activeElement;
+  m.classList.remove('hide');
+  document.body.style.overflow = 'hidden';
+  if (name === 'howto') loadStartingLines();
+  if (name === 'feedback') refreshFeedbackCount();
+  const focusable = m.querySelector('textarea, input, button:not(.modal-close)');
+  if (focusable) focusable.focus();
+}
+function closeModal(m) {
+  m.classList.add('hide');
+  document.body.style.overflow = '';
+  if (lastFocused && lastFocused.focus) lastFocused.focus();
+}
+document.addEventListener('click', (e) => {
+  const opener = e.target.closest('[data-modal]');
+  if (opener) { openModal(opener.dataset.modal); return; }
+  const closer = e.target.closest('[data-close]');
+  if (closer) { closeModal(closer.closest('.modal-backdrop')); return; }
+  // Click on the dimmed backdrop (not the card) closes the modal.
+  if (e.target.classList && e.target.classList.contains('modal-backdrop')) { closeModal(e.target); return; }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const open = document.querySelector('.modal-backdrop:not(.hide)');
+    if (open) closeModal(open);
+  }
+});
+
+/* ---- curated "every megastar started small" showcase (static, cited) ---- */
+let startingLinesLoaded = false;
+async function loadStartingLines() {
+  if (startingLinesLoaded) return;
+  const host = $('#startingLines');
+  try {
+    const res = await fetch('/data/starting-lines.json');
+    const data = await res.json();
+    host.innerHTML = (data.artists || []).map((a) => `
+      <div class="sl">
+        <div class="sl-name">${esc(a.name)}</div>
+        <div class="sl-body"><b>Then:</b> ${esc(a.then)} <a class="sl-src" href="${esc(a.source)}" target="_blank" rel="noopener" title="Source">↗</a></div>
+      </div>`).join('');
+    startingLinesLoaded = true;
+  } catch (e) {
+    host.innerHTML = '<p class="dim">Couldn\'t load the showcase.</p>';
+  }
+}
+
+/* ---- feedback form ---- */
+let fbRating = null;
+document.querySelectorAll('#starRating .star').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    fbRating = Number(btn.dataset.star);
+    document.querySelectorAll('#starRating .star').forEach((s) =>
+      s.classList.toggle('on', Number(s.dataset.star) <= fbRating));
+  });
+});
+async function refreshFeedbackCount() {
+  try {
+    const { count } = await api('/feedback/count');
+    $('#fbCount').textContent = count > 0 ? `${count} note${count === 1 ? '' : 's'} so far` : '';
+  } catch { /* non-fatal */ }
+}
+$('#feedbackForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = ($('#fbMessage').value || '').trim();
+  if (!message) { toast('Please add a short note.'); $('#fbMessage').focus(); return; }
+  const name = ($('#fbName').value || '').trim();
+  const btn = $('#fbSubmit');
+  btn.disabled = true;
+  try {
+    await api('/feedback', {
+      method: 'POST',
+      body: JSON.stringify({ rating: fbRating, message, name: name || null }),
+    });
+    closeModal($('#modal-feedback'));
+    toast('Thank you — feedback received! 🙏');
+    // reset
+    $('#fbMessage').value = ''; $('#fbName').value = ''; fbRating = null;
+    document.querySelectorAll('#starRating .star').forEach((s) => s.classList.remove('on'));
+  } catch (err) {
+    toast('Could not send: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ---- first-time visitors: auto-open How to Play once ---- */
+try {
+  if (!localStorage.getItem('crescendo.seenHowTo')) {
+    openModal('howto');
+    localStorage.setItem('crescendo.seenHowTo', '1');
+  }
+} catch { /* localStorage may be unavailable; skip */ }
 
 /* ============================================================================
    Ambient "spores" — a lightweight full-page canvas of drifting, rising,

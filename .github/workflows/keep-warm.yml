@@ -1,0 +1,31 @@
+# Keep-warm ping (v1.2) — reduces Render free-tier cold starts when sharing the live link.
+#
+# Render free instances spin down after ~15 min idle; a cold start is ~1 min (Spring) plus Neon's
+# scale-to-zero wake. Pinging the health endpoints every 10 min keeps them warm.
+#
+# BUDGET CONSTRAINT (important): Render's 750 free instance-hours/month are PER WORKSPACE, shared
+# across BOTH services (crescendo-game + crescendo-predict). Keeping both warm 24/7 would need
+# ~1,500h and blow the free quota mid-month. So this is WINDOWED to ~12h/day:
+#   12h × 2 services ≈ 720 instance-hours/month  <  750 free.
+# Adjust the cron hour range (UTC) to match your demo hours, or narrow it for more headroom.
+# 03:00–14:59 UTC ≈ 08:30–20:30 IST.
+name: keep-warm
+
+on:
+  schedule:
+    - cron: "*/10 3-14 * * *"   # every 10 min, 03:00–14:59 UTC (< 15 min spin-down)
+  workflow_dispatch: {}          # manual "wake it now" before a demo
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping both services (best-effort; never fail the run)
+        run: |
+          # --max-time 90 absorbs the ~1-min cold start; || true so a slow wake isn't a red X.
+          curl -fsS --max-time 90 https://crescendo-game.onrender.com/actuator/health || true
+          curl -fsS --max-time 90 https://crescendo-predict.onrender.com/health || true

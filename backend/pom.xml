@@ -13,9 +13,9 @@
 
     <groupId>io.crescendo</groupId>
     <artifactId>crescendo-game</artifactId>
-    <version>1.1.1</version>
+    <version>1.2.0</version>
     <name>crescendo-game</name>
-    <description>Crescendo v1.0 — salary-cap draft game backend consuming the /predict seam</description>
+    <description>Crescendo v1.2 — salary-cap draft game with transparent AI, feedback + go-live on Neon/Render</description>
 
     <properties>
         <java.version>21</java.version>
@@ -35,8 +35,18 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Postgres driver for the prod (Neon) profile; H2 stays the default for local + tests. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
