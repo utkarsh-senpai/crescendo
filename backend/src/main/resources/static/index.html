@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Crescendo — Breakout Draft</title>
-  <meta name="description" content="Draft emerging artists, beat a transparent AI, and score on real-world breakout growth." />
+  <meta name="description" content="Draft real Pop, EDM and Bollywood artists, beat a transparent AI, and score on real-world momentum." />
   <meta name="theme-color" content="#080D0C" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
@@ -43,7 +43,7 @@
     </a>
     <div class="topbar-actions">
       <button id="howToBtn" class="btn btn-ghost btn-sm" data-modal="howto">How to play</button>
-      <span class="tag">v1.2 · transparent AI</span>
+      <span class="tag">v1.3 · leagues</span>
     </div>
   </header>
 
@@ -52,9 +52,13 @@
     <section id="view-home" class="hero">
       <span class="kicker">Scout · Draft · Grow</span>
       <h1>Spot the breakout</h1>
-      <p>Draft a salary-capped roster of emerging artists. Beat a <b>transparent AI</b> that shows
-         every pick and every pass. Score on real-world <b>organic</b> growth.</p>
-      <div class="cta">
+      <p>Draft a salary-capped roster, beat a <b>transparent AI</b> that shows every pick and every
+         pass, and score on real-world <b>growth</b>. Pick your league:</p>
+
+      <!-- League picker — one pool per game, no cross-select. Cards rendered by app.js from /api/leagues. -->
+      <div id="leaguePicker" class="league-picker" role="radiogroup" aria-label="Choose a league"></div>
+
+      <div class="cta" style="margin-top:1.5rem">
         <div class="field">
           <label for="playerName">Your name</label>
           <input id="playerName" type="text" placeholder="e.g. Ada" maxlength="40" autocomplete="off" />
@@ -65,7 +69,7 @@
         <button id="toLeaderboard" class="btn btn-ghost">Leaderboard</button>
       </div>
       <p class="dim" style="font-size:var(--fs-small);margin-top:1.25rem">
-        Scores come from the live <code>/predict</code> service — a real model, on synthetic demo data.
+        Real artists &amp; current stats from YouTube; momentum is simulated demo data (live tracker maturing). Scored by the <code>/predict</code> model.
       </p>
     </section>
 
@@ -73,7 +77,7 @@
     <section id="view-board" class="hide">
       <div class="section-head">
         <div>
-          <div class="eyebrow">Draft board</div>
+          <div class="eyebrow">Draft board · <span id="boardLeague">Pop</span></div>
           <h2>Pick <span id="rosterSize" class="tnum">5</span> artists under the cap</h2>
         </div>
         <button class="btn btn-ghost" data-nav="home">← New game</button>
@@ -157,18 +161,17 @@
     <div class="modal card">
       <button class="modal-close" data-close aria-label="Close">×</button>
       <div class="eyebrow">How to play</div>
-      <h2 id="howtoTitle">Spot the next breakout</h2>
+      <h2 id="howtoTitle">Draft the momentum</h2>
       <ol class="howto-steps">
-        <li><b>Draft 5 emerging artists</b> under a $100 salary cap. Cheaper artists leave room for more upside.</li>
-        <li><b>The board is scored live</b> by the <code>/predict</code> model — momentum, not hype. Artists whose growth looks bought are flagged <span class="pill flag">⚠ Inorganic</span> and discounted.</li>
+        <li><b>Pick a league</b> — Pop, EDM or Bollywood — then <b>draft 5 real artists</b> under a $100 salary cap. Cheaper artists leave room for more upside.</li>
+        <li><b>The board is scored live</b> by the <code>/predict</code> model — momentum, not size. Growth that looks bought is flagged <span class="pill flag">⚠ Inorganic</span> and discounted.</li>
         <li><b>Lock your roster</b> and a <b>transparent AI</b> drafts against you — showing every pick, its value-per-$, and every artist it passed on and why.</li>
-        <li><b>Score the season</b> on realised <b>organic</b> growth. Beat the AI, climb the leaderboard.</li>
+        <li><b>Score the season</b> on realised <b>momentum</b>. Beat the AI, climb the leaderboard.</li>
       </ol>
 
       <div class="hook">
-        <div class="eyebrow">Every megastar started small</div>
-        <p class="muted">Crescendo is about catching artists in the <b>1k–100k</b> range — long before the fame. A reminder of where a few once began:</p>
-        <div id="startingLines" class="starting-lines"></div>
+        <div class="eyebrow">Real artists · demo momentum</div>
+        <p class="muted">Artists and their <b>current</b> stats are real (from YouTube). Momentum is <b>simulated demo data</b> for now — a live daily tracker is accumulating real history, and the game will switch to it as the data matures.</p>
       </div>
 
       <div class="row" style="justify-content:center;margin-top:1.25rem">

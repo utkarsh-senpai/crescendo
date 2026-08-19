@@ -4,6 +4,7 @@ import io.crescendo.game.api.GameDtos.BoardArtist;
 import io.crescendo.game.api.GameDtos.DraftBoardResponse;
 import io.crescendo.game.api.GameDtos.GameView;
 import io.crescendo.game.api.GameDtos.LeaderboardEntry;
+import io.crescendo.game.api.GameDtos.LeagueOption;
 import io.crescendo.game.api.GameDtos.OpponentEntry;
 import io.crescendo.game.api.GameDtos.OpponentSnub;
 import io.crescendo.game.api.GameDtos.OpponentView;
@@ -11,6 +12,7 @@ import io.crescendo.game.api.GameDtos.RosterEntry;
 import io.crescendo.game.domain.Artist;
 import io.crescendo.game.domain.ArtistFeatureSnapshot;
 import io.crescendo.game.domain.GameSession;
+import io.crescendo.game.domain.League;
 import io.crescendo.game.domain.OpponentPick;
 import io.crescendo.game.domain.RosterPick;
 import io.crescendo.game.predict.PredictClient;
@@ -68,8 +70,15 @@ public class GameService {
 
     @Transactional
     public GameView createGame(String playerName) {
+        return createGame(playerName, League.POP);
+    }
+
+    @Transactional
+    public GameView createGame(String playerName, League league) {
+        League chosen = league != null ? league : League.POP;
         GameSession game = new GameSession(
-                playerName, rules.getSalaryCap(), rules.getRosterSize(), rules.getDraftAsOfDate());
+                playerName, chosen, rules.getSalaryCap(), rules.getRosterSize(),
+                rules.getDraftAsOfDate());
         games.save(game);
         return toView(game, List.of());
     }
@@ -82,7 +91,7 @@ public class GameService {
     @Transactional(readOnly = true)
     public DraftBoardResponse draftBoard(long gameId) {
         GameSession game = requireGame(gameId);
-        List<Artist> all = artists.findAll();
+        List<Artist> all = artists.findByLeague(game.getLeague());
         Map<Long, RankedArtist> ranked = rankAll(all, game.getDraftAsOfDate());
 
         List<BoardArtist> board = new ArrayList<>();
@@ -96,7 +105,7 @@ public class GameService {
         }
         board.sort(boardOrder());
         return new DraftBoardResponse(
-                game.getId(), game.getSalaryCap(), game.getRosterSize(),
+                game.getId(), game.getLeague(), game.getSalaryCap(), game.getRosterSize(),
                 game.getDraftAsOfDate(), board);
     }
 
@@ -134,8 +143,13 @@ public class GameService {
 
         List<Artist> chosen = new ArrayList<>();
         for (Long id : distinct) {
-            chosen.add(artists.findById(id).orElseThrow(
-                    () -> GameException.badRequest("unknown artist " + id)));
+            Artist a = artists.findById(id).orElseThrow(
+                    () -> GameException.badRequest("unknown artist " + id));
+            if (a.getLeague() != game.getLeague()) {
+                throw GameException.badRequest(
+                        "artist " + id + " is not in the " + game.getLeague() + " league");
+            }
+            chosen.add(a);
         }
         int spent = chosen.stream().mapToInt(Artist::getSalary).sum();
         if (spent > game.getSalaryCap()) {
@@ -143,9 +157,9 @@ public class GameService {
                     "roster salary " + spent + " exceeds cap " + game.getSalaryCap());
         }
 
-        // One seam call scores every artist as of the draft date: used for both the player's
-        // recorded pick scores and the bot's value-based draft off the same board.
-        List<Artist> all = artists.findAll();
+        // One seam call scores every artist in this league as of the draft date: used for both the
+        // player's recorded pick scores and the bot's value-based draft off the same board.
+        List<Artist> all = artists.findByLeague(game.getLeague());
         Map<Long, RankedArtist> ranked = rankAll(all, game.getDraftAsOfDate());
 
         for (Artist a : chosen) {
@@ -249,6 +263,14 @@ public class GameService {
         return toView(game, picks.findByGameId(gameId));
     }
 
+    /** The selectable leagues for the home-screen picker, in enum order. */
+    public List<LeagueOption> leagues() {
+        return java.util.Arrays.stream(League.values())
+                .map(l -> new LeagueOption(
+                        l.name(), l.getLabel(), l.getBand(), l.getTagline()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public List<LeaderboardEntry> leaderboard() {
         return games.findByStatusOrderByPlayerScoreDesc(GameSession.Status.SCORED).stream()
@@ -275,7 +297,7 @@ public class GameService {
         OpponentView opponent = buildOpponentView(game);
         String outcome = outcome(game);
         return new GameView(
-                game.getId(), game.getPlayerName(), game.getSalaryCap(), spent,
+                game.getId(), game.getPlayerName(), game.getLeague(), game.getSalaryCap(), spent,
                 game.getRosterSize(), game.getDraftAsOfDate(), game.getScoreAsOfDate(),
                 game.getStatus(), game.getPlayerScore(), entries, opponent, outcome);
     }

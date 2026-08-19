@@ -141,6 +141,35 @@ def discover(
     )
 
 
+@app.command(name="seed-genres")
+def seed_genres(
+    config: str = _CONFIG_OPT,
+    pool: str = typer.Option("../seeds/genre_artists.txt", "--pool",
+                             help="Path to the GENRE|channel_id|Name pool file"),
+):
+    """Seed the tracked set from the curated Pop/EDM/Bollywood top-artist pool (v1.3).
+
+    No subscriber-band filter (these are top artists). Idempotent — safe to re-run. After this,
+    the daily `collect` pass snapshots the pool like any other active artist (append-only history).
+    """
+    cfg = _boot(config)
+    from .db import Db
+    from .discovery import load_genre_pool
+    from .youtube import QuotaAccountant, YouTubeClient
+
+    pool_path = Path(pool)
+    if not pool_path.is_absolute():
+        pool_path = cfg.config_dir / pool
+    db = Db(cfg.database_url)
+    db.bootstrap()
+    acct = QuotaAccountant(cfg.daily_unit_ceiling, _today_utc())
+    yt = YouTubeClient(cfg.youtube_api_key, acct)
+    report = load_genre_pool(cfg, db, yt, pool_path)
+    typer.echo(
+        f"seeded genre pool: {report.n_seed} channels tracked; {report.units_spent} units spent"
+    )
+
+
 @app.command()
 def collect(
     config: str = _CONFIG_OPT,
