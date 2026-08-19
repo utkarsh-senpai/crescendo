@@ -43,13 +43,26 @@ public class DataSeeder {
     ApplicationRunner seed(ArtistRepository artists, ArtistFeatureSnapshotRepository snapshots,
                            GameRules rules) {
         return args -> {
-            if (artists.count() > 0) {
+            Seed[] seeds = allSeeds();
+            // Self-healing seed: (re)seed when the artist table is empty, OR when it holds a stale
+            // pre-v1.4 set — a different row count than expected, or any artist missing a channelId
+            // (the column didn't exist before v1.4, so a v1.3-seeded prod DB has nulls and the
+            // live-stats lookup finds nothing). Reference data only; safe to rebuild. Idempotent:
+            // a correct, complete seed is left untouched.
+            long count = artists.count();
+            boolean stale = count != seeds.length || artists.countByChannelIdIsNull() > 0;
+            if (count > 0 && !stale) {
                 return;
+            }
+            if (count > 0) {
+                log.info("Re-seeding stale artist data (had {}, expected {}, channelId-null={})",
+                        count, seeds.length, artists.countByChannelIdIsNull());
+                snapshots.deleteAllInBatch();
+                artists.deleteAllInBatch();
             }
             LocalDate draft = rules.getDraftAsOfDate();
             LocalDate score = rules.getScoreAsOfDate();
 
-            Seed[] seeds = allSeeds();
             for (Seed s : seeds) {
                 artists.save(new Artist(
                         s.id(), s.name(), s.channelId(), s.genre(), s.league(), s.salary()));
