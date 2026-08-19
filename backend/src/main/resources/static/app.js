@@ -270,6 +270,105 @@ $('#toLeaderboard').addEventListener('click', () => loadLeaderboard());
 $('#draftBtn').addEventListener('click', lockRoster);
 $('#scoreBtn').addEventListener('click', scoreGame);
 
+/* ============================================================================
+   Ambient "spores" — a lightweight full-page canvas of drifting, rising,
+   twinkling bioluminescent motes (the organic-growth motif). Cheap by design:
+   one pre-rendered sprite drawn per particle, count scaled to viewport area and
+   capped, paused when the tab is hidden, and reduced to a faint static field
+   when the user prefers reduced motion.
+   ============================================================================ */
+(function ambient() {
+  const canvas = document.getElementById('ambient');
+  if (!canvas || !canvas.getContext) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, dpr = 1, particles = [], raf = 0, last = 0;
+
+  // Pre-render the glow once into an offscreen sprite so per-frame draws are just blits.
+  const SPRITE = 64;
+  const sprite = document.createElement('canvas');
+  sprite.width = sprite.height = SPRITE;
+  const sctx = sprite.getContext('2d');
+  const g = sctx.createRadialGradient(SPRITE / 2, SPRITE / 2, 0, SPRITE / 2, SPRITE / 2, SPRITE / 2);
+  g.addColorStop(0, 'rgba(180,255,200,1)');
+  g.addColorStop(0.35, 'rgba(120,240,170,0.55)');
+  g.addColorStop(1, 'rgba(80,220,150,0)');
+  sctx.fillStyle = g;
+  sctx.fillRect(0, 0, SPRITE, SPRITE);
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  function makeParticle(seedY) {
+    const r = rand(1.1, 3.6);
+    return {
+      x: Math.random() * W,
+      y: seedY == null ? Math.random() * H : seedY,
+      r,
+      vy: -rand(4, 16),                 // rise (px/s)
+      sway: rand(6, 22),                // horizontal sway amplitude
+      phase: Math.random() * Math.PI * 2,
+      swaySpeed: rand(0.15, 0.5),
+      baseAlpha: rand(0.15, 0.6),
+      twinkle: rand(0.4, 1.2),
+    };
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // ~1 mote / 14k px², capped — dense enough to read as a field, cheap enough to be free.
+    const target = Math.min(120, Math.round((W * H) / 14000));
+    particles = Array.from({ length: target }, () => makeParticle());
+  }
+
+  function drawMote(p, t) {
+    const a = reduce
+      ? p.baseAlpha * 0.5
+      : p.baseAlpha * (0.6 + 0.4 * Math.sin(t * p.twinkle + p.phase));
+    const x = p.x + (reduce ? 0 : Math.sin(t * p.swaySpeed + p.phase) * p.sway);
+    const d = p.r * 6;
+    ctx.globalAlpha = Math.max(0, a);
+    ctx.drawImage(sprite, x - d / 2, p.y - d / 2, d, d);
+  }
+
+  function frame(now) {
+    const t = now / 1000;
+    const dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+    last = now;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      p.y += p.vy * dt;
+      if (p.y < -20) { p.y = H + 20; p.x = Math.random() * W; }   // wrap to bottom
+      drawMote(p, t);
+    }
+    ctx.globalAlpha = 1;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  if (reduce) {
+    // One static, faint pass — decorative, no animation loop.
+    ctx.clearRect(0, 0, W, H);
+    const t = 0;
+    for (const p of particles) drawMote(p, t);
+    ctx.globalAlpha = 1;
+  } else {
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    start();
+  }
+})();
+
 /* ---- service worker (installable, offline shell) ---- */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

@@ -5,23 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Crescendo — Breakout Draft</title>
   <meta name="description" content="Draft emerging artists, beat a transparent AI, and score on real-world breakout growth." />
-  <meta name="theme-color" content="#0B0E14" />
+  <meta name="theme-color" content="#080D0C" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <!-- Display font (self-degrades to the system stack in --font-display if offline). -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <!-- display=optional: the browser either has Syne ready at first paint or keeps the
+       fallback for the page's life — no mid-load swap, so no layout shift (CLS). -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <!-- Full-page ambient: drifting, rising bioluminescent spores. Painted by app.js;
+       decorative only, honours prefers-reduced-motion + pauses when tab hidden. -->
+  <canvas id="ambient" aria-hidden="true"></canvas>
   <header class="topbar">
     <a class="brand" href="/" aria-label="Crescendo home">
       <svg viewBox="0 0 48 32" fill="none" aria-hidden="true">
         <defs>
           <linearGradient id="bg" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" stop-color="#00C2E8"/><stop offset="1" stop-color="#C77DFF"/>
+            <stop offset="0" stop-color="#12C98A"/><stop offset="1" stop-color="#A6F76B"/>
           </linearGradient>
         </defs>
         <g stroke="url(#bg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
@@ -42,11 +47,7 @@
   <main class="wrap">
     <!-- ===== HERO / NEW GAME ===== -->
     <section id="view-home" class="hero">
-      <div class="eq-bg" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
+      <span class="kicker">Scout · Draft · Grow</span>
       <h1>Spot the breakout</h1>
       <p>Draft a salary-capped roster of emerging artists. Beat a <b>transparent AI</b> that shows
          every pick and every pass. Score on real-world <b>organic</b> growth.</p>
