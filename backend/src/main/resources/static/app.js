@@ -134,6 +134,7 @@ function renderBoard() {
         <span class="sub">momentum</span>
       </div>
       <div class="reasons">${esc(reason)}</div>
+      <div class="live" data-live="${a.artistId}"></div>
       <div class="foot">
         <span class="cost tnum">$${a.salary}</span>
         <button class="btn-add" data-add="${a.artistId}">+ Draft</button>
@@ -141,6 +142,34 @@ function renderBoard() {
     grid.appendChild(card);
   });
   updateSelectionUi();
+  loadLiveStats();
+}
+
+/* ---- real-time YouTube stats (v1.4): enrich each card with live subs/views ---- */
+const fmtCompact = (n) => {
+  const x = Number(n) || 0;
+  if (x >= 1e9) return (x / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+  if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (x >= 1e3) return (x / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(x);
+};
+async function loadLiveStats() {
+  if (!state.game) return;
+  let data;
+  try {
+    data = await api('/live/board/' + state.game.gameId);
+  } catch { return; }              // best-effort; board still works without it
+  if (!data || !data.enabled || !data.artists) return;
+  const byId = Object.fromEntries(data.artists.map((a) => [a.artistId, a]));
+  document.querySelectorAll('#boardGrid .live').forEach((slot) => {
+    const s = byId[Number(slot.dataset.live)];
+    if (!s) return;
+    slot.innerHTML =
+      `<span class="live-dot" aria-hidden="true"></span>` +
+      `<span class="live-stat">${fmtCompact(s.subscribers)} subs</span>` +
+      `<span class="live-stat dim">${fmtCompact(s.views)} views</span>`;
+    if (s.summary) slot.title = s.summary;
+  });
 }
 function togglePick(id) {
   const b = state.board;

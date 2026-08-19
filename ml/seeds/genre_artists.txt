@@ -1,37 +1,48 @@
-# Crescendo genre candidate pool — verified Official Artist / label channels (v1.3 pivot).
-# Format: GENRE|channel_id|Name   # subs / views / videos at capture (2026-08-19)
-# Collected daily by the cron (append-only). Ranking is a VIEW (view-velocity), not stored here.
-# subscriberCount is 3-sig-fig rounded by YouTube; viewCount is exact (primary momentum signal).
+# Crescendo genre candidate pool — verified real Official Artist/label channels (v1.4, 38 total).
+# Format: GENRE|channel_id|Name   # subs / views at capture
+# Collected daily by the cron (append-only). Ranking is a VIEW; subscriberCount is 3-sig-fig rounded, viewCount exact.
 
-# --- POP ---
-POP|UCOmHUn--16B90oW2L6FRR3A|Blackpink   # subs 101,000,000 / views 42,769,956,779 / videos 668
-POP|UC3IZKseVpdzPSBaWxBxundA|BTS   # subs 82,400,000 / views 47,933,114,239 / videos 3498
-POP|UCqECaJ8Gagnn7YCbPEzWH6g|Taylor Swift   # subs 63,300,000 / views 45,967,810,245 / videos 660
-POP|UC0C-w0YjGpqDXGB8IHb662A|Ed Sheeran   # subs 59,200,000 / views 38,573,737,540 / videos 783
-POP|UCiGm_E4ZwYSHV3bcW1pnSeQ|Billie Eilish   # subs 58,500,000 / views 23,183,787,504 / videos 211
-POP|UC9CoOnJkIBMdeijd9qYoT_g|Ariana Grande   # subs 58,000,000 / views 32,957,569,745 / videos 290
-POP|UCYvmuw-JtVrTZQ-7Y4kd63Q|Katy Perry   # subs 47,200,000 / views 30,373,907,341 / videos 248
-POP|UCoUM-UJ7rirJYP8CQ0EIaHA|Bruno Mars   # subs 44,200,000 / views 26,276,659,587 / videos 125
-POP|UC0WP5P-ufpRfjbNrmOWwLBQ|The Weeknd   # subs 39,900,000 / views 37,543,185,754 / videos 204
-POP|UCIwFjwMjI0y7PDBVEO9-bkQ|Justin Bieber   # subs 79,200,000 / views 39,188,010,266 / videos 283
-POP|UCAvCL8hyXjSUHKEGuUPr1BA|Shawn Mendes   # subs 30,800,000 / views 16,112,996,017 / videos 199
-POP|UC-J-KZfRV8c13fOCkhXdLiQ|Dua Lipa   # subs 25,300,000 / views 16,357,813,374 / videos 341
-# --- EDM ---
-EDM|UCEdvpU2pFRCVqU6yIPyTpMQ|Marshmello   # subs 58,600,000 / views 18,110,583,911 / videos 587
-EDM|UCJrOtniJ0-NWz37R30urifQ|Alan Walker   # subs 47,700,000 / views 17,242,766,470 / videos 1032
-EDM|UC1l7wYrva1qCH-wgqcHaaRg|David Guetta   # subs 27,900,000 / views 23,556,857,460 / videos 1104
-EDM|UCq3Ci-h945sbEYXpVlw7rJg|The Chainsmokers   # subs 23,000,000 / views 17,252,969,567 / videos 367
-EDM|UCPHjpfnnGklkRBBTd0k6aHg|Avicii   # subs 21,600,000 / views 12,660,564,812 / videos 209
-EDM|UC_TVqp_SyG6j5hG-xVRy95A|Skrillex   # subs 20,500,000 / views 7,524,684,348 / videos 252
-EDM|UCIjYyZxkFucP_W-tmXg_9Ow|Calvin Harris   # subs 19,600,000 / views 19,383,115,173 / videos 106
-EDM|UC5H_KXkPbEsGs0tFt8R35mA|Martin Garrix   # subs 15,200,000 / views 7,439,807,682 / videos 529
-# --- BOLLYWOOD ---
-BOLLYWOOD|UCq-Fj5jknLsUf-MWSy4_brA|T-Series   # subs 314,000,000 / views 351,999,943,815 / videos 26915
-BOLLYWOOD|UCFFbwnve3yF62-tVXkTyHqg|Zee Music   # subs 123,000,000 / views 90,482,266,555 / videos 16860
-BOLLYWOOD|UCJrDMFOdv1I2k8n9oK_V21w|Tips Official   # subs 82,200,000 / views 58,322,226,015 / videos 10293
-BOLLYWOOD|UC56gTxNs4f9xZ7Pa2i5xNzg|Sony Music India   # subs 72,500,000 / views 84,376,146,659 / videos 12469
-BOLLYWOOD|UCbTLwN10NoCU4WDzLf1JMOA|YRF   # subs 72,600,000 / views 60,444,291,225 / videos 5094
-BOLLYWOOD|UCOsyDsO5tIt-VZ1iwjdQmew|Speed Records   # subs 48,700,000 / views 37,230,971,973 / videos 13543
-BOLLYWOOD|UCicMnWThgzNjUmqpd-nUTXQ|Neha Kakkar   # subs 15,400,000 / views 2,729,072,468 / videos 262
-BOLLYWOOD|UCtFOW7jJXChfFNoucRFqRmw|Arijit Singh   # subs 6,380,000 / views 4,877,341,367 / videos 174
-BOLLYWOOD|UCcL78rRNuUQ8t7Dx4CLmRqA|Shreya Ghoshal   # subs 2,710,000 / views 1,002,983,476 / videos 77
+# --- POP (15) ---
+POP|UC3IZKseVpdzPSBaWxBxundA|BTS   # subs 82,400,000 / views 47,933,114,239
+POP|UCqECaJ8Gagnn7YCbPEzWH6g|Taylor Swift   # subs 63,300,000 / views 45,967,810,245
+POP|UCOmHUn--16B90oW2L6FRR3A|Blackpink   # subs 101,000,000 / views 42,769,956,779
+POP|UCIwFjwMjI0y7PDBVEO9-bkQ|Justin Bieber   # subs 79,200,000 / views 39,188,010,266
+POP|UC0C-w0YjGpqDXGB8IHb662A|Ed Sheeran   # subs 59,200,000 / views 38,573,737,540
+POP|UC0WP5P-ufpRfjbNrmOWwLBQ|The Weeknd   # subs 39,900,000 / views 37,543,185,754
+POP|UC9CoOnJkIBMdeijd9qYoT_g|Ariana Grande   # subs 58,000,000 / views 32,957,569,745
+POP|UCYvmuw-JtVrTZQ-7Y4kd63Q|Katy Perry   # subs 47,200,000 / views 30,373,907,341
+POP|UCBVjMGOIkavEAhyqpxJ73Dw|Maroon 5   # subs 38,100,000 / views 28,431,764,564
+POP|UCoUM-UJ7rirJYP8CQ0EIaHA|Bruno Mars   # subs 44,200,000 / views 26,276,659,587
+POP|UCiGm_E4ZwYSHV3bcW1pnSeQ|Billie Eilish   # subs 58,500,000 / views 23,183,787,504
+POP|UCPNxhDvTcytIdvwXWAm43cA|Selena Gomez   # subs 35,800,000 / views 16,461,538,012
+POP|UC-J-KZfRV8c13fOCkhXdLiQ|Dua Lipa   # subs 25,300,000 / views 16,357,813,374
+POP|UCAvCL8hyXjSUHKEGuUPr1BA|Shawn Mendes   # subs 30,800,000 / views 16,112,996,017
+POP|UCwppdrjsBPAZg5_cUwQjfMQ|Charlie Puth   # subs 23,100,000 / views 12,896,111,259
+
+# --- EDM (11) ---
+EDM|UC1l7wYrva1qCH-wgqcHaaRg|David Guetta   # subs 27,900,000 / views 23,556,857,460
+EDM|UCIjYyZxkFucP_W-tmXg_9Ow|Calvin Harris   # subs 19,600,000 / views 19,383,115,173
+EDM|UCEdvpU2pFRCVqU6yIPyTpMQ|Marshmello   # subs 58,600,000 / views 18,110,583,911
+EDM|UCq3Ci-h945sbEYXpVlw7rJg|The Chainsmokers   # subs 23,000,000 / views 17,252,969,567
+EDM|UCJrOtniJ0-NWz37R30urifQ|Alan Walker   # subs 47,700,000 / views 17,242,766,470
+EDM|UCPHjpfnnGklkRBBTd0k6aHg|Avicii   # subs 21,600,000 / views 12,660,564,812
+EDM|UC_TVqp_SyG6j5hG-xVRy95A|Skrillex   # subs 20,500,000 / views 7,524,684,348
+EDM|UC5H_KXkPbEsGs0tFt8R35mA|Martin Garrix   # subs 15,200,000 / views 7,439,807,682
+EDM|UCCFJeI-2sT_cWgz-QJRgbCw|Kygo   # subs 7,050,000 / views 6,641,252,678
+EDM|UCxmNWF8fQ4miqfGs84dFVrg|Dimitri Vegas & Like Mike   # subs 5,870,000 / views 2,538,652,895
+EDM|UCv0tIDoaBZCTXQvVO4zosng|ILLENIUM   # subs 1,060,000 / views 736,041,313
+
+# --- BOLLYWOOD (12) ---
+BOLLYWOOD|UCq-Fj5jknLsUf-MWSy4_brA|T-Series   # subs 314,000,000 / views 351,999,943,815
+BOLLYWOOD|UCFFbwnve3yF62-tVXkTyHqg|Zee Music   # subs 123,000,000 / views 90,482,266,555
+BOLLYWOOD|UC56gTxNs4f9xZ7Pa2i5xNzg|Sony Music India   # subs 72,500,000 / views 84,376,146,659
+BOLLYWOOD|UCbTLwN10NoCU4WDzLf1JMOA|YRF   # subs 72,600,000 / views 60,444,291,225
+BOLLYWOOD|UCJrDMFOdv1I2k8n9oK_V21w|Tips Official   # subs 82,200,000 / views 58,322,226,015
+BOLLYWOOD|UCOsyDsO5tIt-VZ1iwjdQmew|Speed Records   # subs 48,700,000 / views 37,230,971,973
+BOLLYWOOD|UCtFOW7jJXChfFNoucRFqRmw|Arijit Singh   # subs 6,380,000 / views 4,877,341,367
+BOLLYWOOD|UCicMnWThgzNjUmqpd-nUTXQ|Neha Kakkar   # subs 15,400,000 / views 2,729,072,468
+BOLLYWOOD|UC8MyBFjXbTezvZgMTEBFwgA|Guru Randhawa   # subs 6,140,000 / views 2,392,630,014
+BOLLYWOOD|UCzqQvVAkCEFrWI2VOPzFpeg|Jubin Nautiyal   # subs 6,790,000 / views 2,303,480,608
+BOLLYWOOD|UCzAn-hBNSTjX-QMnHASZFfA|Darshan Raval   # subs 4,400,000 / views 1,104,097,167
+BOLLYWOOD|UCcL78rRNuUQ8t7Dx4CLmRqA|Shreya Ghoshal   # subs 2,710,000 / views 1,002,983,476
+
