@@ -11,6 +11,8 @@ const state = {
   game: null,        // latest GameView
   board: null,       // DraftBoardResponse
   selected: new Set(),
+  leagues: [],       // [{id,label,band,tagline}] from /api/leagues
+  league: null,      // chosen league id (e.g. "POP")
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -72,7 +74,10 @@ async function startGame() {
   const slow = setTimeout(() => { btn.textContent = 'Waking the model up…'; }, 4000);
   const slower = setTimeout(() => { btn.textContent = 'Almost there (free-tier cold start)…'; }, 12000);
   try {
-    state.game = await api('/games', { method: 'POST', body: JSON.stringify({ playerName: name }) });
+    state.game = await api('/games', {
+      method: 'POST',
+      body: JSON.stringify({ playerName: name, league: state.league || 'POP' }),
+    });
     state.selected.clear();
     await loadBoard();
     show('board');
@@ -94,11 +99,17 @@ async function loadBoard() {
 function isInorganic(reasons) {
   return (reasons || []).some((r) => r.toLowerCase().includes('inorganic'));
 }
+function leagueLabel(id) {
+  const l = state.leagues.find((x) => x.id === id);
+  return l ? l.label : (id || 'Pop');
+}
 function renderBoard() {
   const b = state.board;
   $('#capVal').textContent = b.salaryCap;
   $('#rosterSize').textContent = b.rosterSize;
   $('#rosterSize2').textContent = b.rosterSize;
+  const bl = $('#boardLeague');
+  if (bl) bl.textContent = leagueLabel(b.league);
 
   const grid = $('#boardGrid');
   grid.innerHTML = '';
@@ -273,6 +284,38 @@ document.addEventListener('click', (e) => {
   const navBtn = e.target.closest('[data-nav]');
   if (navBtn) { nav(navBtn.dataset.nav); return; }
 });
+/* ---- league picker (one pool per game, no cross-select) ---- */
+async function loadLeagues() {
+  const host = $('#leaguePicker');
+  if (!host) return;
+  try {
+    state.leagues = await api('/leagues');
+  } catch {
+    // Fallback so the home screen is still playable if /leagues is unreachable.
+    state.leagues = [{ id: 'POP', label: 'Pop', band: 'Global pop superstars', tagline: '' }];
+  }
+  state.league = state.league || (state.leagues[0] && state.leagues[0].id) || 'POP';
+  host.innerHTML = state.leagues.map((l) => `
+    <button type="button" class="league-card${l.id === state.league ? ' on' : ''}"
+            role="radio" aria-checked="${l.id === state.league}" data-league="${esc(l.id)}">
+      <span class="lc-label">${esc(l.label)}</span>
+      <span class="lc-band">${esc(l.band)}</span>
+      <span class="lc-tag">${esc(l.tagline)}</span>
+    </button>`).join('');
+}
+function selectLeague(id) {
+  state.league = id;
+  document.querySelectorAll('#leaguePicker .league-card').forEach((c) => {
+    const on = c.dataset.league === id;
+    c.classList.toggle('on', on);
+    c.setAttribute('aria-checked', on ? 'true' : 'false');
+  });
+}
+document.addEventListener('click', (e) => {
+  const card = e.target.closest('[data-league]');
+  if (card) { selectLeague(card.dataset.league); }
+});
+
 $('#startBtn').addEventListener('click', startGame);
 $('#playerName').addEventListener('keydown', (e) => { if (e.key === 'Enter') startGame(); });
 $('#toLeaderboard').addEventListener('click', () => loadLeaderboard());
@@ -290,7 +333,6 @@ function openModal(name) {
   lastFocused = document.activeElement;
   m.classList.remove('hide');
   document.body.style.overflow = 'hidden';
-  if (name === 'howto') loadStartingLines();
   if (name === 'feedback') refreshFeedbackCount();
   const focusable = m.querySelector('textarea, input, button:not(.modal-close)');
   if (focusable) focusable.focus();
@@ -315,24 +357,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* ---- curated "every megastar started small" showcase (static, cited) ---- */
-let startingLinesLoaded = false;
-async function loadStartingLines() {
-  if (startingLinesLoaded) return;
-  const host = $('#startingLines');
-  try {
-    const res = await fetch('/data/starting-lines.json');
-    const data = await res.json();
-    host.innerHTML = (data.artists || []).map((a) => `
-      <div class="sl">
-        <div class="sl-name">${esc(a.name)}</div>
-        <div class="sl-body"><b>Then:</b> ${esc(a.then)} <a class="sl-src" href="${esc(a.source)}" target="_blank" rel="noopener" title="Source">↗</a></div>
-      </div>`).join('');
-    startingLinesLoaded = true;
-  } catch (e) {
-    host.innerHTML = '<p class="dim">Couldn\'t load the showcase.</p>';
-  }
-}
 
 /* ---- feedback form ---- */
 let fbRating = null;
@@ -372,6 +396,9 @@ $('#feedbackForm').addEventListener('submit', async (e) => {
     btn.disabled = false;
   }
 });
+
+/* ---- populate the league picker on load ---- */
+loadLeagues();
 
 /* ---- first-time visitors: auto-open How to Play once ---- */
 try {

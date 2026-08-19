@@ -5,6 +5,7 @@ import io.crescendo.game.api.GameDtos.DraftBoardResponse;
 import io.crescendo.game.api.GameDtos.DraftRequest;
 import io.crescendo.game.api.GameDtos.GameView;
 import io.crescendo.game.api.GameDtos.LeaderboardEntry;
+import io.crescendo.game.api.GameDtos.LeagueOption;
 import io.crescendo.game.api.GameDtos.ScoreRequest;
 import io.crescendo.game.service.GameService;
 import jakarta.validation.Valid;
@@ -29,10 +30,15 @@ public class GameController {
         this.gameService = gameService;
     }
 
+    @GetMapping("/leagues")
+    public List<LeagueOption> leagues() {
+        return gameService.leagues();
+    }
+
     @PostMapping("/games")
     public ResponseEntity<GameView> createGame(@Valid @RequestBody CreateGameRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(gameService.createGame(request.playerName()));
+                .body(gameService.createGame(request.playerName(), request.league()));
     }
 
     @GetMapping("/games/{gameId}")

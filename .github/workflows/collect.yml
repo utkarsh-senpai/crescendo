@@ -1,7 +1,15 @@
-# Daily unattended collector (v0.2). Activated from ml/deploy/collect.workflow.yml.
-# One run/day == one YouTube quota window. Requires repo secrets:
+# Daily unattended collector. Requires repo secrets:
 #   YOUTUBE_API_KEY, DATABASE_URL (Neon Postgres connection string).
 # `doctor` runs first so a misconfigured run fails fast instead of collecting nothing.
+# v1.3: seed-genres (idempotent) ensures the curated Pop/EDM/Bollywood top-artist pool is tracked,
+# then collect snapshots it. Append-only — an artist that later drops out of a top-N view keeps its
+# history. Cost is ~1-2 units/day (channels.list batches 50 ids per unit).
+#
+# ToS NOTE (YouTube Developer Policies §III.E.2/E.4): public API stats obtained without channel-owner
+# OAuth ("Non-Authorized Data") must not be STORED >30 days, and cross-channel aggregation must not be
+# publicly exposed. This raw history is kept PRIVATE (Neon) for personal ML/analytics only — never
+# redistributed. If you ever publish a dashboard/API, expose only DERIVED metrics refreshed to
+# current, or pursue the audited-developer quota-extension path first.
 name: collect
 
 on:
@@ -32,5 +40,7 @@ jobs:
         run: uv sync
       - name: Preflight (config, DB, API key, quota)
         run: uv run crescendo doctor
+      - name: Ensure the genre pool is tracked (idempotent)
+        run: uv run crescendo seed-genres
       - name: Collect one snapshot pass
         run: uv run crescendo collect
