@@ -1,0 +1,35 @@
+# Render blueprint for the Crescendo game backend (Spring Boot, v1.2).
+#
+# Deploy: in the Render dashboard "New +" -> "Blueprint" (or "Web Service") and point it at this
+# repo with root directory `backend/`. Render builds backend/Dockerfile and runs it. Free tier = $0
+# (spins down after ~15 min idle; first request after idle cold-starts ~1 min — the app shows a
+# "waking the model up" state, and .github/workflows/keep-warm.yml pings it to reduce cold hits).
+#
+# SECRETS (set in the dashboard, NOT committed):
+#   DATABASE_URL       jdbc:postgresql://<project>-pooler.<region>.aws.neon.tech/<db>?sslmode=require
+#   DATABASE_USERNAME  Neon role
+#   DATABASE_PASSWORD  Neon password
+# Use Neon's POOLED endpoint (hostname has the "-pooler" suffix).
+services:
+  - type: web
+    name: crescendo-game
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    rootDir: backend
+    plan: free
+    region: singapore          # same region as the Neon ap-southeast-1 database
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # The predict seam base-url is baked into application.yml; override here if it ever moves.
+      - key: CRESCENDO_PREDICT_BASE_URL
+        value: https://crescendo-predict.onrender.com
+      - key: DATABASE_URL
+        sync: false            # set in dashboard (secret)
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false

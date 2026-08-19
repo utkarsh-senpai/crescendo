@@ -41,7 +41,10 @@
       </svg>
       <span class="word">Crescendo</span>
     </a>
-    <span class="tag">v1.1 · transparent AI</span>
+    <div class="topbar-actions">
+      <button id="howToBtn" class="btn btn-ghost btn-sm" data-modal="howto">How to play</button>
+      <span class="tag">v1.2 · transparent AI</span>
+    </div>
   </header>
 
   <main class="wrap">
@@ -143,6 +146,70 @@
   </main>
 
   <p class="footnote">Crescendo · a non-gambling music breakout-prediction game · $0 to build, $0 to run</p>
+
+  <!-- Floating feedback button — always available so anyone with the link can leave a note. -->
+  <button id="feedbackFab" class="fab" data-modal="feedback" aria-label="Give feedback">
+    <span aria-hidden="true">✦</span> Feedback
+  </button>
+
+  <!-- ===== HOW TO PLAY (modal) ===== -->
+  <div id="modal-howto" class="modal-backdrop hide" role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+    <div class="modal card">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="eyebrow">How to play</div>
+      <h2 id="howtoTitle">Spot the next breakout</h2>
+      <ol class="howto-steps">
+        <li><b>Draft 5 emerging artists</b> under a $100 salary cap. Cheaper artists leave room for more upside.</li>
+        <li><b>The board is scored live</b> by the <code>/predict</code> model — momentum, not hype. Artists whose growth looks bought are flagged <span class="pill flag">⚠ Inorganic</span> and discounted.</li>
+        <li><b>Lock your roster</b> and a <b>transparent AI</b> drafts against you — showing every pick, its value-per-$, and every artist it passed on and why.</li>
+        <li><b>Score the season</b> on realised <b>organic</b> growth. Beat the AI, climb the leaderboard.</li>
+      </ol>
+
+      <div class="hook">
+        <div class="eyebrow">Every megastar started small</div>
+        <p class="muted">Crescendo is about catching artists in the <b>1k–100k</b> range — long before the fame. A reminder of where a few once began:</p>
+        <div id="startingLines" class="starting-lines"></div>
+      </div>
+
+      <div class="row" style="justify-content:center;margin-top:1.25rem">
+        <button class="btn btn-primary" data-close>Got it — let's draft</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FEEDBACK (modal) ===== -->
+  <div id="modal-feedback" class="modal-backdrop hide" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div class="modal card">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="eyebrow">Your take</div>
+      <h2 id="feedbackTitle">Help shape Crescendo</h2>
+      <p class="muted">This is an early build. What worked, what didn't, what you'd want next?</p>
+      <form id="feedbackForm" novalidate>
+        <div class="field-block">
+          <span class="field-label" id="ratingLabel">How was it?</span>
+          <div id="starRating" class="stars" role="radiogroup" aria-labelledby="ratingLabel">
+            <button type="button" class="star" data-star="1" aria-label="1 star">★</button>
+            <button type="button" class="star" data-star="2" aria-label="2 stars">★</button>
+            <button type="button" class="star" data-star="3" aria-label="3 stars">★</button>
+            <button type="button" class="star" data-star="4" aria-label="4 stars">★</button>
+            <button type="button" class="star" data-star="5" aria-label="5 stars">★</button>
+          </div>
+        </div>
+        <div class="field-block">
+          <label for="fbMessage">Your feedback</label>
+          <textarea id="fbMessage" rows="4" maxlength="2000" placeholder="I liked… / I'd change… / I wish it could…" required></textarea>
+        </div>
+        <div class="field-block">
+          <label for="fbName">Name <span class="dim">(optional)</span></label>
+          <input id="fbName" type="text" maxlength="120" placeholder="e.g. Ada" autocomplete="off" />
+        </div>
+        <div class="row" style="justify-content:space-between;align-items:center;margin-top:.5rem">
+          <span id="fbCount" class="dim" style="font-size:var(--fs-small)"></span>
+          <button id="fbSubmit" type="submit" class="btn btn-primary">Send feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="/app.js" defer></script>
 </body>
