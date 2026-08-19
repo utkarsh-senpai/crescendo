@@ -267,14 +267,6 @@ On prod, the same against `https://crescendo-game.onrender.com`.
 - **`crescendo-predict` does NOT need a redeploy** for game/ML changes — it's built only from
   `serving/` + model bits of `ml/`; the demo model is baked at build time.
 
-### GitHub / accounts
-- **Two gh accounts share the keyring.** The active one can silently flip to `utkarsh-zendesk`
-  and break personal pushes ("Repository not found"). Always
-  `gh auth switch --user utkarsh-senpai` before pushing this repo.
-- **The PAT can't set Render secrets or dispatch workflows (403)** — those are dashboard/web-UI
-  steps only.
-
----
 
 ## 8. Quick reference
 
