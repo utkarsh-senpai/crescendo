@@ -285,3 +285,80 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 .spinner { display:inline-block; }
 .center { text-align:center; }
 .stack > * + * { margin-top: 1rem; }
+
+/* ============================================================================
+   v1.2 — How-to-Play, feedback modal, floating action button, artist showcase.
+   Modals use a fixed backdrop + centered card; motion gated behind reduced-motion.
+   ============================================================================ */
+.topbar-actions { display:flex; align-items:center; gap:.75rem; }
+.btn-sm { padding:.4rem .8rem; font-size: var(--fs-small); }
+
+/* ---- floating feedback button ---- */
+.fab {
+  position: fixed; right: clamp(.9rem, 3vw, 1.5rem); bottom: clamp(.9rem, 3vw, 1.5rem); z-index: 40;
+  display:inline-flex; align-items:center; gap:.4rem;
+  font: 700 var(--fs-small)/1 var(--font-display); letter-spacing:.04em;
+  padding:.7rem 1.05rem; border-radius: var(--radius-pill); cursor:pointer;
+  color:#03140D; background: var(--accent-strong); border:1px solid transparent;
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 22px rgba(18,201,138,.3);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.fab span { font-size:1em; }
+@media (prefers-reduced-motion: no-preference) {
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--accent), 0 0 26px var(--accent-glow); }
+}
+
+/* ---- modal ---- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 60; display:flex; align-items:center; justify-content:center;
+  padding: clamp(1rem, 4vw, 2rem); background: rgba(3,7,6,.72); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); overflow-y: auto;
+}
+.modal-backdrop.hide { display:none; }
+.modal {
+  position: relative; width: min(640px, 100%); max-height: 90vh; overflow-y: auto;
+  border-color: var(--border-hi); box-shadow: var(--shadow-pop), 0 0 40px rgba(52,226,155,.12);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .modal { animation: modalPop var(--dur-slow) var(--ease); }
+  @keyframes modalPop { from { transform: translateY(12px) scale(.98); opacity:0; } to { transform:none; opacity:1; } }
+}
+.modal-close {
+  position: absolute; top: .6rem; right: .8rem; width: 2rem; height: 2rem; line-height: 1;
+  font-size: 1.5rem; border-radius: var(--radius-pill); border:1px solid var(--border);
+  background: var(--bg-3); color: var(--text-mid); cursor:pointer;
+}
+.modal-close:hover { color: var(--text-hi); border-color: var(--border-hi); }
+
+/* ---- how-to steps ---- */
+.howto-steps { margin: 1rem 0 0; padding-left: 1.2rem; display:flex; flex-direction:column; gap:.7rem; color: var(--text-mid); }
+.howto-steps li { line-height: var(--lh-body); }
+.howto-steps b { color: var(--text-hi); }
+.howto-steps .pill { vertical-align: middle; }
+
+/* ---- "started small" showcase ---- */
+.hook { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.starting-lines { display:flex; flex-direction:column; gap:.55rem; margin-top:.75rem; }
+.sl {
+  display:grid; grid-template-columns: auto 1fr; gap:.6rem .8rem; align-items:baseline;
+  padding:.65rem .8rem; border-radius: var(--radius-sm); background: var(--bg-2); border:1px solid var(--border);
+}
+.sl .sl-name { font-family: var(--font-display); font-weight:700; color: var(--accent); white-space:nowrap; }
+.sl .sl-body { font-size: var(--fs-small); color: var(--text-mid); line-height:1.45; }
+.sl .sl-body b { color: var(--text-hi); font-weight:600; }
+.sl .sl-src { color: var(--text-low); text-decoration:none; }
+.sl .sl-src:hover { color: var(--accent); }
+
+/* ---- feedback form ---- */
+.field-block { display:flex; flex-direction:column; gap:.4rem; margin-top: 1rem; }
+.field-block label, .field-label { font-size: var(--fs-small); color: var(--text-mid); text-transform:uppercase; letter-spacing:.06em; }
+.field-block textarea, .field-block input {
+  background: var(--bg-1); border:1px solid var(--border-hi); color: var(--text-hi);
+  padding:.65rem .85rem; border-radius: var(--radius-sm); font-size: var(--fs-body); font-family: var(--font-ui);
+  width:100%; resize: vertical; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.field-block textarea:focus, .field-block input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); outline:none; }
+.stars { display:inline-flex; gap:.2rem; }
+.star { background:none; border:none; cursor:pointer; font-size:1.8rem; line-height:1; color: var(--text-low); transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); padding:0 .1rem; }
+.star:hover { transform: scale(1.15); }
+.star.on { color: var(--warn); text-shadow: 0 0 12px rgba(255,194,75,.5); }
