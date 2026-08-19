@@ -402,3 +402,33 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
   .live .live-dot { animation: livePulse 1.8s ease-in-out infinite; }
   @keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 }
+
+/* ---- v1.4 scoring modal: source-of-truth two-up ---- */
+.src-grid { display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; margin-top:.75rem; }
+@media (max-width:560px){ .src-grid { grid-template-columns:1fr; } }
+.src-now, .src-later { padding:.85rem; border-radius: var(--radius-sm); background: var(--bg-2); border:1px solid var(--border); }
+.src-later { border-color: var(--border-hi); background: rgba(52,226,155,.06); }
+.src-tag { font-family: var(--font-display); font-weight:700; font-size: var(--fs-small); text-transform:uppercase; letter-spacing:.06em; color: var(--text-mid); margin-bottom:.35rem; }
+.src-tag.on { color: var(--accent); }
+.src-now p, .src-later p { margin:0; font-size: var(--fs-small); }
+
+/* ---- v1.4 post-results reasoning ("why you won/lost") ---- */
+.reasoning { margin-top: 1rem; }
+.reasoning:empty { display:none; }
+.reasoning-headline { font-size: var(--fs-h3); margin:.25rem 0 .5rem; color: var(--text-hi); }
+.reasoning-points { margin:.25rem 0 1rem; padding-left:1.1rem; color: var(--text-mid); display:flex; flex-direction:column; gap:.35rem; }
+.reasoning-points b { color: var(--text-hi); }
+.rb-legend { display:flex; align-items:center; gap:.4rem; font-size: var(--fs-small); color: var(--text-mid); margin-bottom:.6rem; }
+.rb-key { width:10px; height:10px; border-radius:3px; display:inline-block; margin-left:.6rem; }
+.rb-key.you { background: var(--breakout); } .rb-key.ai { background: var(--accent); }
+.rb-cols { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:560px){ .rb-cols { grid-template-columns:1fr; } }
+.rb-col .sub { font-size: var(--fs-small); color: var(--text-mid); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.4rem; }
+.rb-row { display:grid; grid-template-columns: 7.5rem 1fr 3rem; align-items:center; gap:.5rem; margin-bottom:.35rem; }
+.rb-name { font-size: var(--fs-small); color: var(--text-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rb-track { height:8px; border-radius:var(--radius-pill); background: var(--bg-3); overflow:hidden; }
+.rb-fill { display:block; height:100%; border-radius:var(--radius-pill); }
+.rb-fill.you { background: linear-gradient(90deg, var(--accent-strong), var(--breakout)); }
+.rb-fill.ai { background: linear-gradient(90deg, var(--accent-strong), var(--accent)); }
+@media (prefers-reduced-motion: no-preference) { .rb-fill { transition: width var(--dur-slow) var(--ease); } }
+.rb-val { font-size: var(--fs-small); color: var(--text-mid); text-align:right; }
