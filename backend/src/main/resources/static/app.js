@@ -134,6 +134,7 @@ function renderBoard() {
         <span class="sub">momentum</span>
       </div>
       <div class="reasons">${esc(reason)}</div>
+      <div class="live" data-live="${a.artistId}"></div>
       <div class="foot">
         <span class="cost tnum">$${a.salary}</span>
         <button class="btn-add" data-add="${a.artistId}">+ Draft</button>
@@ -141,6 +142,34 @@ function renderBoard() {
     grid.appendChild(card);
   });
   updateSelectionUi();
+  loadLiveStats();
+}
+
+/* ---- real-time YouTube stats (v1.4): enrich each card with live subs/views ---- */
+const fmtCompact = (n) => {
+  const x = Number(n) || 0;
+  if (x >= 1e9) return (x / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+  if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (x >= 1e3) return (x / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(x);
+};
+async function loadLiveStats() {
+  if (!state.game) return;
+  let data;
+  try {
+    data = await api('/live/board/' + state.game.gameId);
+  } catch { return; }              // best-effort; board still works without it
+  if (!data || !data.enabled || !data.artists) return;
+  const byId = Object.fromEntries(data.artists.map((a) => [a.artistId, a]));
+  document.querySelectorAll('#boardGrid .live').forEach((slot) => {
+    const s = byId[Number(slot.dataset.live)];
+    if (!s) return;
+    slot.innerHTML =
+      `<span class="live-dot" aria-hidden="true"></span>` +
+      `<span class="live-stat">${fmtCompact(s.subscribers)} subs</span>` +
+      `<span class="live-stat dim">${fmtCompact(s.views)} views</span>`;
+    if (s.summary) slot.title = s.summary;
+  });
 }
 function togglePick(id) {
   const b = state.board;
@@ -248,6 +277,64 @@ function renderScore() {
   const [cls, text] = map[g.outcome] || ['tie', ''];
   v.className = 'verdict ' + cls;
   v.textContent = text;
+  renderReasoning(g);
+}
+
+/* ---- post-results "why you won/lost" breakdown (computed from both rosters) ---- */
+function renderReasoning(g) {
+  const host = $('#reasoning');
+  if (!host) return;
+  const you = (g.roster || []).map((p) => ({ name: p.name, g: p.realisedGrowth30d || 0, salary: p.salaryPaid }));
+  const ai = (g.opponent && g.opponent.roster ? g.opponent.roster : [])
+    .map((p) => ({ name: p.name, g: p.realisedGrowth30d || 0, salary: p.salaryPaid }));
+  if (!you.length || !ai.length) { host.innerHTML = ''; return; }
+
+  const mean = (arr) => arr.reduce((s, x) => s + x.g, 0) / (arr.length || 1);
+  const youMean = mean(you), aiMean = mean(ai);
+  const margin = Math.abs(youMean - aiMean) * 100;
+  const won = g.outcome === 'PLAYER_WINS', tie = g.outcome === 'TIE';
+
+  const byGrowthDesc = (a, b) => b.g - a.g;
+  const yourBest = [...you].sort(byGrowthDesc)[0];
+  const yourWorst = [...you].sort(byGrowthDesc)[you.length - 1];
+  // High-momentum artists the AI rostered that you didn't pick.
+  const yourNames = new Set(you.map((x) => x.name));
+  const missed = ai.filter((x) => !yourNames.has(x.name)).sort(byGrowthDesc).slice(0, 2);
+
+  // A small stacked bar comparing per-pick realised growth, you vs AI.
+  const maxG = Math.max(...you.map((x) => x.g), ...ai.map((x) => x.g), 0.001);
+  const bars = (arr, klass) => arr.map((x) =>
+    `<div class="rb-row"><span class="rb-name">${esc(x.name)}</span>
+       <span class="rb-track"><span class="rb-fill ${klass}" style="width:${Math.max(3, (x.g / maxG) * 100).toFixed(0)}%"></span></span>
+       <span class="rb-val tnum">${fmtPct(x.g)}</span></div>`).join('');
+
+  const headline = tie
+    ? `A dead heat — your picks averaged the same realised growth as the AI.`
+    : won
+      ? `You won by <b>${margin.toFixed(0)}</b> — your roster's average realised growth beat the AI's.`
+      : `The AI won by <b>${margin.toFixed(0)}</b> — its picks averaged higher realised growth than yours.`;
+
+  const insight = tie ? '' : won
+    ? `<li>Your standout was <b>${esc(yourBest.name)}</b> (${fmtPct(yourBest.g)} realised).</li>`
+    : (missed.length
+        ? `<li>The AI backed <b>${missed.map((m) => esc(m.name) + ' (' + fmtPct(m.g) + ')').join('</b>, <b>')}</b> — high-momentum picks you passed on.</li>`
+        : '') +
+      `<li>Your weakest slot was <b>${esc(yourWorst.name)}</b> (${fmtPct(yourWorst.g)}) — a pick with less momentum for the money.</li>`;
+
+  host.innerHTML = `
+    <div class="reasoning-card card">
+      <div class="eyebrow">Why</div>
+      <p class="reasoning-headline">${headline}</p>
+      <ul class="reasoning-points">
+        ${insight}
+        <li>Scored on <b>mean realised momentum</b> — 5 picks, averaged (size doesn't help).</li>
+      </ul>
+      <div class="rb-legend"><span class="rb-key you"></span>You <span class="rb-key ai"></span>Crescendo AI</div>
+      <div class="rb-cols">
+        <div class="rb-col"><div class="sub">Your picks</div>${bars(you, 'you')}</div>
+        <div class="rb-col"><div class="sub">AI picks</div>${bars(ai, 'ai')}</div>
+      </div>
+    </div>`;
 }
 
 /* ---- flow: leaderboard ---- */

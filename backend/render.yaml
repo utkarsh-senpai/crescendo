@@ -37,3 +37,7 @@ services:
       # Set to any long random string; leave unset to keep the read endpoint disabled.
       - key: CRESCENDO_ADMIN_TOKEN
         sync: false
+      # YouTube Data API key — enables the real-time stats feature (GET /api/live/*). Same key as
+      # the cron's repo secret. Leave unset to disable live stats (game still works on seeded data).
+      - key: YOUTUBE_API_KEY
+        sync: false

@@ -241,14 +241,31 @@ public class GameService {
         return getGame(gameId);
     }
 
+    /**
+     * v1.4 no-op seam for real-momentum scoring. When {@code crescendo.game.use-real-momentum} is
+     * enabled AND the daily cron has accumulated enough real snapshots, this is where scoring will
+     * switch to realised momentum from collected data. Until then it returns empty and the caller
+     * falls through to the seeded synthetic snapshots — so flipping the flag before data matures is
+     * safe (it simply no-ops to today's behaviour).
+     */
+    private Optional<Double> realMomentum(Long artistId, LocalDate asOf) {
+        if (!rules.isUseRealMomentum()) {
+            return Optional.empty();
+        }
+        // TODO(v1.4+): compute realised momentum from cron-collected snapshots once history exists.
+        // No real history yet → no-op to synthetic. Kept as an explicit seam, not dead code.
+        return Optional.empty();
+    }
+
     /** Mean realised {@code growth_30d} across a set of artists as of the score date. */
     private double meanRealisedGrowth(List<Long> artistIds, LocalDate asOf) {
         double sum = 0.0;
         int counted = 0;
         for (Long id : artistIds) {
-            Double growth = snapshotAsOf(id, asOf)
+            // Prefer real cron-collected momentum when enabled + available; else synthetic snapshot.
+            Double growth = realMomentum(id, asOf).orElseGet(() -> snapshotAsOf(id, asOf)
                     .map(ArtistFeatureSnapshot::getGrowth30d)
-                    .orElse(null);
+                    .orElse(null));
             if (growth != null) {
                 sum += growth;
                 counted++;
