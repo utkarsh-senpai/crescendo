@@ -178,8 +178,8 @@ function renderBoard() {
     const tierBadge = (() => {
       if (!tier || inorg) return '';
       const cls = tier === 'HIGH' ? 'conf-high' : tier === 'MEDIUM' ? 'conf-mid' : 'conf-low';
-      const label = tier === 'HIGH' ? 'High conf' : tier === 'MEDIUM' ? 'Mid conf' : 'Uncertain';
-      return `<span class="pill conf ${cls}" title="Model confidence tier (v1.7 will show prediction intervals)">${label}</span>`;
+      const label = tier === 'HIGH' ? 'Strong signal' : tier === 'MEDIUM' ? 'Good signal' : 'Early signal';
+      return `<span class="pill conf ${cls}" title="How confident the model is in this prediction">${label}</span>`;
     })();
 
     // v1.7: prediction interval bar
@@ -209,7 +209,7 @@ function renderBoard() {
       <div class="score-row">
         ${miniEq(5)}
         <span class="score tnum">${fmtScore(a.breakoutScore)}</span>
-        <span class="sub">momentum</span>
+        <span class="sub">growth score</span>
         ${tierBadge}
       </div>
       ${intervalBar}
@@ -412,9 +412,9 @@ function renderReasoning(g) {
   const insight = tie ? '' : won
     ? `<li>Your standout was <b>${esc(yourBest.name)}</b> (${fmtPct(yourBest.g)} realised).</li>`
     : (missed.length
-        ? `<li>The AI backed <b>${missed.map((m) => esc(m.name) + ' (' + fmtPct(m.g) + ')').join('</b>, <b>')}</b> — high-momentum picks you passed on.</li>`
+        ? `<li>The AI backed <b>${missed.map((m) => esc(m.name) + ' (' + fmtPct(m.g) + ')').join('</b>, <b>')}</b> — fast-growing artists you left on the board.</li>`
         : '') +
-      `<li>Your weakest slot was <b>${esc(yourWorst.name)}</b> (${fmtPct(yourWorst.g)}) — a pick with less momentum for the money.</li>`;
+      `<li>Your weakest slot was <b>${esc(yourWorst.name)}</b> (${fmtPct(yourWorst.g)}) — this pick didn't grow much relative to its cost.</li>`;
 
   host.innerHTML = `
     <div class="reasoning-card card">
@@ -422,7 +422,7 @@ function renderReasoning(g) {
       <p class="reasoning-headline">${headline}</p>
       <ul class="reasoning-points">
         ${insight}
-        <li>Scored on <b>mean realised momentum</b> — 5 picks, averaged (size doesn't help).</li>
+        <li>Your score = average real growth across your 5 picks. Having big artists doesn't help — only genuine growth counts.</li>
       </ul>
       <div class="rb-legend"><span class="rb-key you"></span>You <span class="rb-key ai"></span>Crescendo AI</div>
       <div class="rb-cols">

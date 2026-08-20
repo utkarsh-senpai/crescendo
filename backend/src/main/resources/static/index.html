@@ -51,10 +51,9 @@
   <main class="wrap">
     <!-- ===== HERO / NEW GAME ===== -->
     <section id="view-home" class="hero">
-      <span class="kicker">Scout · Draft · Grow</span>
-      <h1>Spot the breakout</h1>
-      <p>Draft a salary-capped roster, beat a <b>transparent AI</b> that shows every pick and every
-         pass, and score on real-world <b>growth</b>. Pick your league:</p>
+      <span class="kicker">Pick · Predict · Win</span>
+      <h1>Who's about to blow up?</h1>
+      <p>Pick 5 artists you think will grow the most this month. Compete against an AI that explains every choice. Real artists, real YouTube stats. Choose your genre:</p>
 
       <!-- League picker — one pool per game, no cross-select. Cards rendered by app.js from /api/leagues. -->
       <div id="leaguePicker" class="league-picker" role="radiogroup" aria-label="Choose a league"></div>
@@ -87,7 +86,7 @@
         <button id="toLeaderboard" class="btn btn-ghost">Leaderboard</button>
       </div>
       <p class="dim" style="font-size:var(--fs-small);margin-top:1.25rem">
-        Real artists &amp; current stats from YouTube; momentum is simulated demo data (live tracker maturing). Scored by the <code>/predict</code> model.
+        Real artists, real YouTube subscriber counts. Growth predictions are demo data for now — a live tracker collects real history daily and will power scoring once it matures.
       </p>
     </section>
 
@@ -98,13 +97,13 @@
       <div class="section-head">
         <div>
           <div class="eyebrow">Draft board · <span id="boardLeague">Pop</span></div>
-          <h2>Pick <span id="rosterSize" class="tnum">5</span> artists under the cap</h2>
+          <h2>Pick <span id="rosterSize" class="tnum">5</span> artists — stay under your $100 budget</h2>
         </div>
         <button class="btn btn-ghost" data-nav="home">← New game</button>
       </div>
       <div class="board-meta">
-        <span class="chip strong">Cap <b id="capVal" class="tnum">100</b></span>
-        <span class="chip">Spent <b id="spentVal" class="tnum">0</b></span>
+        <span class="chip strong">Budget $<b id="capVal" class="tnum">100</b></span>
+        <span class="chip">Spent $<b id="spentVal" class="tnum">0</b></span>
         <span class="chip">Picked <b id="pickedCount" class="tnum">0</b>/<span id="rosterSize2" class="tnum">5</span></span>
         <div class="meter" title="salary spent"><div id="capMeter" class="meter-fill"></div></div>
       </div>
@@ -189,21 +188,21 @@
     <div class="modal card">
       <button class="modal-close" data-close aria-label="Close">×</button>
       <div class="eyebrow">How to play</div>
-      <h2 id="howtoTitle">Draft the momentum</h2>
+      <h2 id="howtoTitle">It's like fantasy sports — for music</h2>
       <ol class="howto-steps">
-        <li><b>Pick a league</b> — Pop, EDM or Bollywood — then <b>draft 5 real artists</b> under a $100 salary cap. Cheaper artists leave room for more upside.</li>
-        <li><b>The board is scored live</b> by the <code>/predict</code> model — momentum, not size. Growth that looks bought is flagged <span class="pill flag">⚠ Inorganic</span> and discounted.</li>
-        <li><b>Lock your roster</b> and a <b>transparent AI</b> drafts the strongest legal team it can — showing every pick, its momentum, and every artist it passed on and why.</li>
-        <li><b>Score the season</b> on realised <b>momentum</b>. Beat the AI, climb the leaderboard.</li>
+        <li><b>Pick a genre</b> — Pop, EDM or Bollywood. You get a <b>budget of $100</b>. More popular artists cost more, leaving less room for bold picks.</li>
+        <li><b>Choose 5 artists</b> you think will grow the most over the next 30 days. The number on each card is their predicted growth score — bigger = growing faster.</li>
+        <li><b>Lock your team.</b> An AI then builds its own team and shows you every pick it made and why — no hidden moves.</li>
+        <li><b>See who was right.</b> The team with the highest average real growth wins. Big subscriber counts don't help — only genuine acceleration does. <span class="pill flag">⚠ Inorganic</span> = growth that looks artificially inflated, and it gets penalised.</li>
       </ol>
 
       <div class="hook">
-        <div class="eyebrow">Real artists · demo momentum</div>
-        <p class="muted">Artists and their <b>current</b> stats are real (from YouTube). Momentum is <b>simulated demo data</b> for now — a live daily tracker is accumulating real history, and the game will switch to it as the data matures.</p>
+        <div class="eyebrow">Real artists, demo predictions</div>
+        <p class="muted">The artists and their current subscriber counts are <b>real</b> (pulled live from YouTube). The growth predictions are <b>demo estimates</b> for now — a tracker is building up real history daily, and once it has enough data the predictions will be based on real trends.</p>
       </div>
 
       <div class="row" style="justify-content:center;margin-top:1.25rem">
-        <button class="btn btn-primary" data-close>Got it — let's draft</button>
+        <button class="btn btn-primary" data-close>Got it — let's play</button>
       </div>
     </div>
   </div>
@@ -213,31 +212,31 @@
     <div class="modal card">
       <button class="modal-close" data-close aria-label="Close">×</button>
       <div class="eyebrow">How scoring works</div>
-      <h2 id="scoringTitle">Momentum, not size</h2>
+      <h2 id="scoringTitle">Growth, not fame</h2>
 
       <ol class="howto-steps">
-        <li><b>Each artist has a momentum score</b> from the <code>/predict</code> model. Being <i>big</i> doesn't help — a 100M-subscriber artist who's plateaued scores low; a smaller one who's surging scores high.</li>
-        <li><b>Your roster's score</b> = the <b>mean realised growth</b> of your 5 picks over the season window. Mean, not sum — so stacking more artists doesn't inflate it; quality of picks is everything.</li>
-        <li><b>Growth that looks bought</b> (<span class="pill flag">⚠ Inorganic</span>) is discounted, so chasing a suspicious spike backfires.</li>
-        <li><b>You vs the AI</b>: the transparent AI drafts the strongest legal roster it can under the same cap. Higher mean realised growth wins.</li>
+        <li><b>The number on each card</b> is a prediction of how much that artist will grow over the next 30 days. It's based on recent subscriber and view trends — not on how big they already are.</li>
+        <li><b>Your score</b> = the average actual growth across your 5 picks at the end of the window. Picking one massive artist doesn't help — all 5 picks count equally.</li>
+        <li><b>Artificially inflated growth</b> (<span class="pill flag">⚠ Inorganic</span>) doesn't count. If an artist's numbers look like they were boosted by bots or paid promotion, that growth is discounted.</li>
+        <li><b>You vs the AI</b>: the AI builds its own team under the same budget and explains every choice. Higher average growth wins. The AI isn't hiding anything.</li>
       </ol>
 
       <div class="hook">
-        <div class="eyebrow">Source of truth</div>
+        <div class="eyebrow">Where the numbers come from</div>
         <div class="src-grid">
           <div class="src-now">
-            <div class="src-tag">Now · demo</div>
-            <p class="muted">Artists &amp; <b>current</b> subscriber/view counts are <b>real</b> (live YouTube API). The <b>momentum</b> that drives scoring is <b>simulated demo data</b> — realistic, deterministic, but not yet real history.</p>
+            <div class="src-tag">Now — demo mode</div>
+            <p class="muted">Subscriber and view counts are <b>live from YouTube</b>. The growth predictions driving scores are <b>realistic demo estimates</b> — not yet based on real tracked history.</p>
           </div>
           <div class="src-later">
-            <div class="src-tag on">After ~45 days · real</div>
-            <p class="muted">A daily tracker is collecting real YouTube stats for every artist. Once ~45 days of history exists, scoring switches to <b>real measured momentum</b> (7d/30d view-velocity &amp; acceleration) — the same mechanism, now on real data. No app change needed; a config flag flips it on.</p>
+            <div class="src-tag on">Coming — real data</div>
+            <p class="muted">A tracker is recording real YouTube stats for every artist every day. Once it has built up enough history (a few weeks), scores will switch to <b>predictions based on what actually happened</b>. No changes needed on your end.</p>
           </div>
         </div>
       </div>
 
       <div class="row" style="justify-content:center;margin-top:1.25rem">
-        <button class="btn btn-primary" data-close>Makes sense</button>
+        <button class="btn btn-primary" data-close>Got it</button>
       </div>
     </div>
   </div>
