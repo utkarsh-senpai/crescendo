@@ -47,6 +47,7 @@ class PredictService:
     def predict(self, as_of_date, artists: list[ArtistFeatures]) -> PredictResponse:
         """Score + rank + explain. Ties broken by artist_id for a deterministic ordering."""
         import pandas as pd
+        import numpy as np
 
         # Build a frame whose columns are every feature any caller sent; predict() reindexes
         # to the model's trained feature order (missing -> NaN), so extra/absent keys are safe.
@@ -54,12 +55,33 @@ class PredictService:
         frame = pd.DataFrame(rows)
         scores = self.model.predict(frame)  # pd.Series aligned to frame.index
 
+        # Discovery Edge (v1.5): how much smarter is this pick vs naive cohort momentum?
+        # Cohort baseline = expected breakout score for an artist at this momentum level.
+        # Approximated as the cohort median score (no artist is unfairly penalised for being
+        # in a hot cohort — edge measures how far above the average this pick is).
+        scores_arr = scores.values.astype(float)
+        cohort_median = float(np.median(scores_arr)) if len(scores_arr) > 0 else 0.0
+        cohort_p25 = float(np.percentile(scores_arr, 25)) if len(scores_arr) > 0 else 0.0
+        cohort_p75 = float(np.percentile(scores_arr, 75)) if len(scores_arr) > 0 else 1.0
+
+        def _confidence_tier(score: float) -> str:
+            # Proxy for uncertainty using position in cohort distribution.
+            # v1.7 will replace this with proper conformal prediction intervals (W-TQA).
+            # Artists far above the median are high-confidence picks; near-median are uncertain.
+            if score >= cohort_p75:
+                return "HIGH"
+            elif score >= cohort_median:
+                return "MEDIUM"
+            return "LOW"
+
         importances = self.model.feature_importances()
         scored = [
             (
                 artists[i].artist_id,
                 float(scores.iloc[i]),
                 build_reasons(artists[i].features, importances, self.inorganic_threshold),
+                round(float(scores.iloc[i]) - cohort_median, 4),  # discovery_edge
+                _confidence_tier(float(scores.iloc[i])),
             )
             for i in range(len(artists))
         ]
@@ -67,8 +89,15 @@ class PredictService:
         scored.sort(key=lambda t: (-t[1], t[0]))
 
         ranked = [
-            RankedArtist(artist_id=aid, breakout_score=score, rank=idx + 1, reasons=reasons)
-            for idx, (aid, score, reasons) in enumerate(scored)
+            RankedArtist(
+                artist_id=aid,
+                breakout_score=score,
+                rank=idx + 1,
+                reasons=reasons,
+                discovery_edge=edge,
+                confidence_tier=tier,
+            )
+            for idx, (aid, score, reasons, edge, tier) in enumerate(scored)
         ]
         return PredictResponse(
             as_of_date=as_of_date,

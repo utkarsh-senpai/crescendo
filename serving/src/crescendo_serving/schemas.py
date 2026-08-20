@@ -30,6 +30,9 @@ class RankedArtist(BaseModel):
     breakout_score: float
     rank: int  # 1-based, descending by breakout_score
     reasons: list[str]
+    # v1.5: discovery edge — how much smarter is this pick vs naive cohort momentum
+    discovery_edge: float | None = None  # predicted_growth - cohort_baseline_expected_growth
+    confidence_tier: str | None = None   # "HIGH" | "MEDIUM" | "LOW" (uncertainty proxy; v1.7 will add proper conformal intervals)
 
 
 class PredictResponse(BaseModel):

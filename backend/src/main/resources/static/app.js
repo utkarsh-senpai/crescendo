@@ -119,19 +119,43 @@ function renderBoard() {
     card.dataset.id = a.artistId;
     const reason = (a.reasons && a.reasons[0]) || 'no signal available';
     const breakout = a.breakoutScore != null && a.breakoutScore >= 0.7 && !inorg;
+
+    // v1.5: discovery edge badge — shows how much above cohort median this pick is
+    const edge = a.discoveryEdge;
+    const edgeBadge = (() => {
+      if (inorg || edge == null) return '';
+      const pct = (edge * 100).toFixed(1);
+      const sign = edge >= 0 ? '+' : '';
+      const cls = edge >= 0.05 ? 'edge-high' : edge >= 0 ? 'edge-mid' : 'edge-low';
+      return `<span class="pill edge ${cls}" title="Discovery Edge: how far above cohort average">${sign}${pct}% edge</span>`;
+    })();
+
+    // v1.5: confidence tier badge
+    const tier = a.confidenceTier;
+    const tierBadge = (() => {
+      if (!tier || inorg) return '';
+      const cls = tier === 'HIGH' ? 'conf-high' : tier === 'MEDIUM' ? 'conf-mid' : 'conf-low';
+      const label = tier === 'HIGH' ? 'High conf' : tier === 'MEDIUM' ? 'Mid conf' : 'Uncertain';
+      return `<span class="pill conf ${cls}" title="Model confidence tier (v1.7 will show prediction intervals)">${label}</span>`;
+    })();
+
     card.innerHTML = `
       <div class="top">
         <div>
           <div class="name">${esc(a.name)}</div>
           <div class="sub">${esc(a.genre)}</div>
         </div>
-        ${inorg ? '<span class="pill flag">⚠ Inorganic</span>'
-                : breakout ? '<span class="pill breakout">Breakout</span>' : ''}
+        <div class="badges">
+          ${inorg ? '<span class="pill flag">⚠ Inorganic</span>'
+                  : breakout ? '<span class="pill breakout">Breakout</span>' : ''}
+          ${edgeBadge}
+        </div>
       </div>
       <div class="score-row">
         ${miniEq(5)}
         <span class="score tnum">${fmtScore(a.breakoutScore)}</span>
         <span class="sub">momentum</span>
+        ${tierBadge}
       </div>
       <div class="reasons">${esc(reason)}</div>
       <div class="live" data-live="${a.artistId}"></div>
