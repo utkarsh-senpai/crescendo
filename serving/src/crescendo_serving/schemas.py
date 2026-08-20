@@ -32,7 +32,10 @@ class RankedArtist(BaseModel):
     reasons: list[str]
     # v1.5: discovery edge — how much smarter is this pick vs naive cohort momentum
     discovery_edge: float | None = None  # predicted_growth - cohort_baseline_expected_growth
-    confidence_tier: str | None = None   # "HIGH" | "MEDIUM" | "LOW" (uncertainty proxy; v1.7 will add proper conformal intervals)
+    confidence_tier: str | None = None   # "HIGH" | "MEDIUM" | "LOW" derived from conformal interval width
+    # v1.7: cross-sectional conformal prediction intervals (W-TQA / leave-one-out calibration)
+    prediction_interval_lo: float | None = None
+    prediction_interval_hi: float | None = None
 
 
 class PredictResponse(BaseModel):

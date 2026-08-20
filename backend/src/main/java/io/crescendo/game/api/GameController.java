@@ -38,7 +38,7 @@ public class GameController {
     @PostMapping("/games")
     public ResponseEntity<GameView> createGame(@Valid @RequestBody CreateGameRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(gameService.createGame(request.playerName(), request.league()));
+                .body(gameService.createGame(request.playerName(), request.league(), request.replayDate()));
     }
 
     @GetMapping("/games/{gameId}")

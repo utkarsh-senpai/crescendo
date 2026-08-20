@@ -13,6 +13,7 @@ const state = {
   selected: new Set(),
   leagues: [],       // [{id,label,band,tagline}] from /api/leagues
   league: null,      // chosen league id (e.g. "POP")
+  replayDate: null,  // v1.7: ISO date string for replay mode, or null
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -62,6 +63,35 @@ function miniEq(n = 5) {
   return '<span class="eq" aria-hidden="true">' + '<span></span>'.repeat(n) + '</span>';
 }
 
+/* ---- v1.7: replay mode toggle ---- */
+(function initReplayToggle() {
+  const toggle = document.getElementById('replayToggle');
+  const panel = document.getElementById('replayPanel');
+  const input = document.getElementById('replayDate');
+  if (!toggle || !panel || !input) return;
+
+  // Default max = today (can't replay the future)
+  const today = new Date().toISOString().slice(0, 10);
+  input.max = today;
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    panel.classList.toggle('hide', expanded);
+    if (!expanded) {
+      input.focus();
+    } else {
+      // Collapsing clears the replay date
+      input.value = '';
+      state.replayDate = null;
+    }
+  });
+
+  input.addEventListener('change', () => {
+    state.replayDate = input.value || null;
+  });
+})();
+
 /* ---- flow: new game ---- */
 async function startGame() {
   const name = ($('#playerName').value || '').trim() || 'Scout';
@@ -74,9 +104,11 @@ async function startGame() {
   const slow = setTimeout(() => { btn.textContent = 'Waking the model up…'; }, 4000);
   const slower = setTimeout(() => { btn.textContent = 'Almost there (free-tier cold start)…'; }, 12000);
   try {
+    const body = { playerName: name, league: state.league || 'POP' };
+    if (state.replayDate) body.replayDate = state.replayDate;
     state.game = await api('/games', {
       method: 'POST',
-      body: JSON.stringify({ playerName: name, league: state.league || 'POP' }),
+      body: JSON.stringify(body),
     });
     state.selected.clear();
     await loadBoard();
@@ -111,6 +143,17 @@ function renderBoard() {
   const bl = $('#boardLeague');
   if (bl) bl.textContent = leagueLabel(b.league);
 
+  // v1.7: replay mode banner
+  const replayBanner = $('#replayBanner');
+  if (replayBanner) {
+    if (b.isReplayMode && b.replayDate) {
+      replayBanner.textContent = 'REPLAY: Drafting as of ' + b.replayDate + ' — see what happened';
+      replayBanner.classList.remove('hide');
+    } else {
+      replayBanner.classList.add('hide');
+    }
+  }
+
   const grid = $('#boardGrid');
   grid.innerHTML = '';
   b.artists.forEach((a) => {
@@ -139,6 +182,18 @@ function renderBoard() {
       return `<span class="pill conf ${cls}" title="Model confidence tier (v1.7 will show prediction intervals)">${label}</span>`;
     })();
 
+    // v1.7: prediction interval bar
+    const intervalBar = (() => {
+      const lo = a.predictionIntervalLo;
+      const hi = a.predictionIntervalHi;
+      if (lo == null || hi == null || inorg) return '';
+      const loPct = (lo * 100).toFixed(0);
+      const hiPct = (hi * 100).toFixed(0);
+      const loSign = lo >= 0 ? '+' : '';
+      const hiSign = hi >= 0 ? '+' : '';
+      return `<div class="interval-bar"><span class="interval-range tnum">${loSign}${loPct}% → ${hiSign}${hiPct}%</span></div>`;
+    })();
+
     card.innerHTML = `
       <div class="top">
         <div>
@@ -157,6 +212,7 @@ function renderBoard() {
         <span class="sub">momentum</span>
         ${tierBadge}
       </div>
+      ${intervalBar}
       <div class="reasons">${esc(reason)}</div>
       <div class="live" data-live="${a.artistId}"></div>
       <div class="foot">
@@ -294,13 +350,28 @@ function renderScore() {
   countUp($('#aiScore'), fmtScore(g.opponent ? g.opponent.score : 0));
   const v = $('#verdict');
   const map = {
-    PLAYER_WINS: ['win', `You beat the AI 🎉`],
+    PLAYER_WINS: ['win', `You beat the AI`],
     AI_WINS: ['lose', `The AI edged you out`],
     TIE: ['tie', `Dead heat`],
   };
   const [cls, text] = map[g.outcome] || ['tie', ''];
   v.className = 'verdict ' + cls;
   v.textContent = text;
+
+  // v1.7: replay discovery line
+  const replayDiscover = $('#replayDiscover');
+  if (replayDiscover) {
+    if (g.isReplayMode && g.replayDate && g.roster && g.roster.length) {
+      const byGrowth = [...g.roster].sort((a, b) => (b.realisedGrowth30d || 0) - (a.realisedGrowth30d || 0));
+      const standout = byGrowth[0];
+      const endDate = g.scoreAsOfDate || (g.replayDate + ' (+30 days)');
+      replayDiscover.textContent = 'You discovered ' + standout.name + ' in the +30 day window ending ' + endDate;
+      replayDiscover.classList.remove('hide');
+    } else {
+      replayDiscover.classList.add('hide');
+    }
+  }
+
   renderReasoning(g);
 }
 

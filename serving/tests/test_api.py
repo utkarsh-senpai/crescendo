@@ -28,8 +28,12 @@ def test_predict_contract_shape(client):
     assert body["model_kind"] == "lgbm"
     assert len(body["ranked"]) == 2
     top = body["ranked"][0]
-    # v1.5: discovery_edge and confidence_tier added (may be None but present in response)
-    assert set(top) == {"artist_id", "breakout_score", "rank", "reasons", "discovery_edge", "confidence_tier"}
+    # v1.5/v1.7: discovery_edge, confidence_tier, and conformal interval fields present
+    assert set(top) == {
+        "artist_id", "breakout_score", "rank", "reasons",
+        "discovery_edge", "confidence_tier",
+        "prediction_interval_lo", "prediction_interval_hi",
+    }
     assert top["rank"] == 1
     assert isinstance(top["reasons"], list) and top["reasons"]
     # ranks are 1..n and scores descending

@@ -32,7 +32,10 @@ public final class PredictDtos {
             List<String> reasons,
             // v1.5: discovery edge and confidence tier from the predict seam
             @JsonProperty("discovery_edge") Double discoveryEdge,
-            @JsonProperty("confidence_tier") String confidenceTier) {
+            @JsonProperty("confidence_tier") String confidenceTier,
+            // v1.7: cross-sectional conformal prediction intervals
+            @JsonProperty("prediction_interval_lo") Double predictionIntervalLo,
+            @JsonProperty("prediction_interval_hi") Double predictionIntervalHi) {
     }
 
     public record PredictResponse(

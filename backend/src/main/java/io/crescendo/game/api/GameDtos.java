@@ -14,7 +14,7 @@ public final class GameDtos {
     }
 
     /** League is optional on the wire; null defaults to EMERGING (back-compat with v1.2 clients). */
-    public record CreateGameRequest(@NotBlank String playerName, League league) {
+    public record CreateGameRequest(@NotBlank String playerName, League league, LocalDate replayDate) {
     }
 
     /** One selectable league for the home-screen picker. */
@@ -32,7 +32,10 @@ public final class GameDtos {
             List<String> reasons,
             // v1.5: discovery edge (how far above cohort median) + confidence tier
             Double discoveryEdge,
-            String confidenceTier) {
+            String confidenceTier,
+            // v1.7: cross-sectional conformal prediction intervals
+            Double predictionIntervalLo,
+            Double predictionIntervalHi) {
     }
 
     public record DraftBoardResponse(
@@ -41,7 +44,10 @@ public final class GameDtos {
             int salaryCap,
             int rosterSize,
             LocalDate draftAsOfDate,
-            List<BoardArtist> artists) {
+            List<BoardArtist> artists,
+            // v1.7: replay mode fields
+            LocalDate replayDate,
+            boolean isReplayMode) {
     }
 
     public record DraftRequest(@NotEmpty List<Long> artistIds) {
@@ -96,7 +102,10 @@ public final class GameDtos {
             Double playerScore,
             List<RosterEntry> roster,
             OpponentView opponent,
-            String outcome) {
+            String outcome,
+            // v1.7: replay mode fields
+            LocalDate replayDate,
+            boolean isReplayMode) {
     }
 
     public record ScoreRequest(LocalDate scoreAsOfDate) {
