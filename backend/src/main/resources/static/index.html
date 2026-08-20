@@ -44,6 +44,7 @@
     <div class="topbar-actions">
       <button id="howToBtn" class="btn btn-ghost btn-sm" data-modal="howto">How to play</button>
       <button id="scoringBtn" class="btn btn-ghost btn-sm" data-modal="scoring">Scoring</button>
+      <button id="replayInfoBtn" class="btn btn-ghost btn-sm" data-modal="replayinfo">⏪ Replay</button>
       <span class="tag">v1.7 · live stats</span>
     </div>
   </header>
@@ -52,7 +53,7 @@
     <!-- ===== HERO / NEW GAME ===== -->
     <section id="view-home" class="hero">
       <span class="kicker">Pick · Predict · Win</span>
-      <h1>Who's about to blow up?</h1>
+      <h1>Back the breakout.</h1>
       <p>Pick 5 artists you think will grow the most this month. Compete against an AI that explains every choice. Real artists, real YouTube stats. Choose your genre:</p>
 
       <!-- League picker — one pool per game, no cross-select. Cards rendered by app.js from /api/leagues. -->
@@ -237,6 +238,33 @@
 
       <div class="row" style="justify-content:center;margin-top:1.25rem">
         <button class="btn btn-primary" data-close>Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPLAY MODE EXPLAINER (modal) ===== -->
+  <div id="modal-replayinfo" class="modal-backdrop hide" role="dialog" aria-modal="true" aria-labelledby="replayinfoTitle">
+    <div class="modal card">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="eyebrow">Replay Mode</div>
+      <h2 id="replayinfoTitle">Go back in time. Did you call it?</h2>
+
+      <p class="muted" style="margin-bottom:1.25rem">Replay Mode lets you make picks <em>as if it's a past month</em> — then see what actually happened. It's a way to test your instincts against real history rather than predictions.</p>
+
+      <ol class="howto-steps">
+        <li><b>Choose a past month</b> — for example, July 2026. The board freezes to that point in time: you only see the information that was available then.</li>
+        <li><b>Pick your 5 artists</b> as normal. The AI also picks, with the same frozen information.</li>
+        <li><b>The results reveal what actually happened</b> over the 30 days that followed. If you picked correctly, your score reflects real growth — not a guess.</li>
+        <li><b>More history = more replay options.</b> The tracker collects data daily, so each month more past rounds become available to replay.</li>
+      </ol>
+
+      <div class="hook">
+        <div class="eyebrow">Why is it useful?</div>
+        <p class="muted">It turns the game into a challenge of retrospective judgement: "If I had been paying attention in July, would I have spotted who was about to blow up?" Unlike the live game (which scores on future predictions), Replay scores on events that already happened — so there is a definitive right answer.</p>
+      </div>
+
+      <div class="row" style="justify-content:center;margin-top:1.25rem">
+        <button class="btn btn-primary" data-close>Try a replay</button>
       </div>
     </div>
   </div>

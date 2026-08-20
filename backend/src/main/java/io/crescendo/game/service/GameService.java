@@ -208,9 +208,15 @@ public class GameService {
             RankedArtist r = ranked.get(a.getArtistId());
             boolean inorganic = r != null && r.reasons().stream()
                     .anyMatch(s -> s.toLowerCase().contains("inorganic"));
+            // Blend breakoutScore + discoveryEdge so the AI uses both signals.
+            // discoveryEdge measures how far above the cohort median this artist is —
+            // blending it breaks score ties and makes the AI draft more strategically.
+            double baseScore = r != null ? unboxed(r.breakoutScore()) : 0.0;
+            double edge = r != null ? unboxed(r.discoveryEdge()) : 0.0;
+            double blendedScore = baseScore + edge * 0.1;
             candidates.add(new OpponentDrafter.Candidate(
                     a.getArtistId(), a.getName(), a.getSalary(),
-                    r == null ? null : r.breakoutScore(),
+                    blendedScore,
                     r == null ? List.of() : r.reasons(),
                     inorganic));
         }
@@ -437,5 +443,9 @@ public class GameService {
     private GameSession requireGame(long gameId) {
         return games.findById(gameId)
                 .orElseThrow(() -> GameException.notFound("game " + gameId + " not found"));
+    }
+
+    private static double unboxed(Double d) {
+        return d != null ? d : 0.0;
     }
 }
