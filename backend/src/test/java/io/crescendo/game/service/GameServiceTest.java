@@ -67,7 +67,7 @@ class GameServiceTest {
                 List<String> reasons = inorganic
                         ? List.of("discounted: growth looks inorganic")
                         : List.of("steady organic momentum");
-                out.put(id, new RankedArtist(id, score, rank++, reasons));
+                out.put(id, new RankedArtist(id, score, rank++, reasons, null, null));
             }
             return out;
         });
@@ -78,7 +78,7 @@ class GameServiceTest {
         GameView game = gameService.createGame("Ada"); // default league POP (ids 501–515)
         DraftBoardResponse board = gameService.draftBoard(game.gameId());
 
-        assertThat(board.artists()).hasSize(15);
+        assertThat(board.artists()).hasSize(20); // v1.5: POP expanded to 20
         // Ordered by seam score descending (highest first).
         assertThat(board.artists().get(0).breakoutScore())
                 .isGreaterThanOrEqualTo(board.artists().get(board.artists().size() - 1).breakoutScore());
@@ -116,14 +116,14 @@ class GameServiceTest {
         // A legal roster within cap: 511+512+513+514+515 = 14+13+12+11+10 = 60 <= 100.
         List<Long> roster = List.of(511L, 512L, 513L, 514L, 515L);
         GameView drafted = gameService.draft(game.gameId(), roster);
-        assertThat(drafted.salarySpent()).isEqualTo(60);
+        assertThat(drafted.salarySpent()).isEqualTo(80); // v1.5 salaries: 18+17+16+15+14=80
         assertThat(drafted.roster()).hasSize(5);
         assertThat(drafted.roster().get(0).draftReasons()).isNotEmpty();
 
         GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
         assertThat(scored.status()).isEqualTo(GameSession.Status.SCORED);
-        // Mean realised growth_30d for 511,512,513,514,515 = (.176+.154+.133+.111+.09)/5 = .1328
-        assertThat(scored.playerScore()).isCloseTo(0.1328, org.assertj.core.data.Offset.offset(1e-6));
+        // Mean realised growth_30d for 511,512,513,514,515 = (.22+.20+.18+.16+.14)/5 = .18 (v1.5 seeds)
+        assertThat(scored.playerScore()).isCloseTo(0.18, org.assertj.core.data.Offset.offset(1e-6));
     }
 
     @Test
@@ -161,7 +161,8 @@ class GameServiceTest {
     @Test
     void leaderboardRanksScoredGamesByScoreDescending() {
         GameView g1 = gameService.createGame("HighScorer");
-        gameService.draft(g1.gameId(), List.of(505L, 506L, 507L, 508L, 512L)); // stronger realised
+        // v1.5 salaries: 506(23)+508(21)+510(19)+511(18)+512(17)=98 <= 100
+        gameService.draft(g1.gameId(), List.of(506L, 508L, 510L, 511L, 512L)); // stronger realised
         gameService.score(g1.gameId(), LocalDate.parse("2026-08-01"));
 
         GameView g2 = gameService.createGame("LowScorer");
@@ -179,10 +180,10 @@ class GameServiceTest {
         DraftBoardResponse board = gameService.draftBoard(game.gameId());
 
         assertThat(board.league()).isEqualTo(io.crescendo.game.domain.League.BOLLYWOOD);
-        assertThat(board.artists()).hasSize(12);
-        // Every artist on the board is a Bollywood id (701–712); no cross-league leakage.
+        assertThat(board.artists()).hasSize(17); // v1.5: Bollywood expanded to 17
+        // Every artist on the board is a Bollywood id (701–717); no cross-league leakage.
         assertThat(board.artists()).allSatisfy(a ->
-                assertThat(a.artistId()).isBetween(701L, 712L));
+                assertThat(a.artistId()).isBetween(701L, 717L));
     }
 
     @Test

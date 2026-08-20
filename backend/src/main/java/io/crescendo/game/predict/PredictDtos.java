@@ -29,7 +29,10 @@ public final class PredictDtos {
             @JsonProperty("artist_id") long artistId,
             @JsonProperty("breakout_score") double breakoutScore,
             int rank,
-            List<String> reasons) {
+            List<String> reasons,
+            // v1.5: discovery edge and confidence tier from the predict seam
+            @JsonProperty("discovery_edge") Double discoveryEdge,
+            @JsonProperty("confidence_tier") String confidenceTier) {
     }
 
     public record PredictResponse(

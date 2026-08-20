@@ -13,7 +13,7 @@
 
     <groupId>io.crescendo</groupId>
     <artifactId>crescendo-game</artifactId>
-    <version>1.4.1</version>
+    <version>1.5.0</version>
     <name>crescendo-game</name>
     <description>Crescendo v1.3 — league draft (Emerging/Rising/Top/Bollywood), transparent AI, feedback, Neon/Render</description>
 
