@@ -125,27 +125,39 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 }
 
 /* ---- hero + word art ---- */
-.hero { position: relative; text-align: center; padding-block: clamp(1.25rem, 3vw, 2.25rem); }
+.hero { position: relative; text-align: center; padding-block: clamp(1.5rem, 3vw, 2.5rem); }
 .hero .kicker {
   display:inline-block; margin-bottom: 1rem; padding:.35rem .9rem; border-radius: var(--radius-pill);
   border:1px solid var(--border-hi); background: rgba(52,226,155,.06);
   font-family: var(--font-display); font-weight:600; font-size: var(--fs-small);
   letter-spacing:.16em; text-transform: uppercase; color: var(--accent);
 }
+/* Two-tier wordart: thin label line + heavy punchline */
 .hero h1 {
-  position: relative; font-size: var(--fs-display); font-weight: 800;
-  letter-spacing: -.02em; text-transform: uppercase;
-  line-height: .92;
-  /* Reserve the two-line height so swapping in the Syne web font doesn't reflow
-     the content below (keeps CLS ~0). */
-  min-height: calc(var(--fs-display) * 2 * .92);
-  background: linear-gradient(103deg, var(--breakout) 0%, var(--accent) 52%, #7DF7C4 100%);
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  gap: .1em; margin-bottom: .15em;
+  filter: drop-shadow(0 6px 32px rgba(52,226,155,.30));
+}
+.hero h1 .h1-top {
+  font-family: var(--font-display); font-weight: 300;
+  font-size: clamp(1.1rem, 2.5vw + .5rem, 2rem);
+  letter-spacing: .32em; text-transform: uppercase;
+  background: linear-gradient(90deg, var(--accent) 0%, #7DF7C4 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  line-height: 1;
+}
+.hero h1 .h1-main {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(3.5rem, 9vw + 1rem, 7rem);
+  letter-spacing: -.03em; text-transform: uppercase;
+  line-height: .88;
+  background: linear-gradient(103deg, var(--breakout) 0%, var(--accent) 50%, #7DF7C4 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   background-size: 200% 100%;
-  filter: drop-shadow(0 4px 30px rgba(52,226,155,.28));
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero h1 { animation: shimmer 9s ease-in-out infinite; }
+  .hero h1 .h1-main { animation: shimmer 9s ease-in-out infinite; }
 }
 @keyframes shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 .hero p { position: relative; max-width: 48ch; margin: 1rem auto 1.75rem; color: var(--text-mid); font-size: var(--fs-h3); }
@@ -220,6 +232,20 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 .pill.conf-high { color:#a6f76b; border:1px solid rgba(166,247,107,.4); background:rgba(166,247,107,.06); }
 .pill.conf-mid  { color:#f7d26b; border:1px solid rgba(247,210,107,.4); background:rgba(247,210,107,.06); }
 .pill.conf-low  { color:var(--text-lo); border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); }
+
+/* v2.0: replay modal steps */
+.replay-steps { display:flex; flex-direction:column; gap:.85rem; }
+.rs-step { display:flex; align-items:flex-start; gap:.85rem; text-align:left; }
+.rs-num { flex-shrink:0; width:2rem; height:2rem; border-radius:50%; background:rgba(61,225,255,.12); border:1px solid rgba(61,225,255,.3); color:var(--accent); font-family:var(--font-display); font-weight:700; font-size:.85rem; display:flex; align-items:center; justify-content:center; }
+.rs-step b { display:block; font-size:.95rem; color:var(--text-hi); margin-bottom:.15rem; }
+.rs-step .muted { font-size:.85rem; line-height:1.4; }
+
+/* v2.0: replay mode preset selector */
+.replay-panel { text-align:center; }
+.replay-presets { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin-top:.25rem; }
+.replay-preset { font-size:.8rem; padding:.4rem .85rem; border-radius:var(--radius-pill); border:1px solid rgba(255,255,255,.15); background:var(--bg-2); color:var(--text-lo); transition:border-color var(--dur), color var(--dur), background var(--dur); }
+.replay-preset:hover { border-color:var(--accent); color:var(--text-hi); }
+.replay-preset.on { border-color:var(--accent); background:rgba(61,225,255,.1); color:var(--accent); font-weight:700; }
 
 /* ---- buttons ---- */
 .btn {

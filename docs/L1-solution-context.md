@@ -9,7 +9,8 @@
 - **Author persona reviewing this:** "Sam" — Staff ML Engineer / hiring manager, portfolio coach
 - **Date:** 2026-08-04 · **Revised:** 2026-08-10 (competitive + ML research) · **2026-08-18**
   (organic-breakout reframe after first live-data pull — see §11 and
-  `research-2026-08-18-organic-breakout.md`)
+  `research-2026-08-18-organic-breakout.md`) · **2026-08-20** (v1.5/v1.7 shipped,
+  Neon data validation, v2.0 scope locked — see §12)
 
 ---
 
@@ -193,3 +194,56 @@ the load-bearing conclusions:
 - Still free, 10k units/day, resets midnight PT. **Since 2026-06-01, `search.list` has its own
   ~100-call/day bucket.** Our seed+snowball "avoid `search.list`" design is now not merely
   cheap but the only way to scale discovery for free → reinforces the $0 mandate.
+
+---
+
+## 12. v2.0 research pass (2026-08-20) — shipped state, data validation, scope lock
+
+### v1.5.0 and v1.7.0 shipped to main
+
+As of 2026-08-20 both Render services (`crescendo-game`, `crescendo-predict`) are live.
+
+**v1.5.0** delivered: 55 artists (20 POP / 18 EDM / 17 BOLLYWOOD), Discovery Edge metric on
+board cards (predicted growth minus cohort baseline, surfaced as "discovery edge" signal for
+each artist), and a confidence tier (LOW/MED/HIGH) based on prediction interval width.
+
+**v1.7.0** delivered: Historical Replay mode — players select a past date, all game data
+freezes to that date, enabling "you discovered X N days before their breakout" reveals.
+Implemented W-TQA (NeurIPS 2022 + Stanford arXiv:2605.17705) cross-sectional conformal
+prediction intervals: every board card now carries `prediction_interval_lo` and
+`prediction_interval_hi`. 78/78 tests green.
+
+### Neon data validation findings
+
+Validation of the Neon DB performed 2026-08-20 produced two critical findings:
+
+**Finding 1 — two data pools, not one.** The system has always had two separate artist
+populations that must be kept distinct:
+
+Pool 1 — ML emerging artist pool: 43 small electronic channels (4Tune, DEAF KEV, Chime,
+ROY KNOX, etc.) seeded in v0.1, in the 1k–100k sub band, stored in Neon `tracked_artist`.
+This pool exists for ML model training on the organic-breakout prediction task.
+
+Pool 2 — Game demo roster: the 55 top-artist / top-label channels used for the game boards
+(Fred again.., AP Dhillon, T-Series, etc.), defined in `ml/seeds/genre_artists.txt` and
+loaded by Spring Boot `DataSeeder`. This pool was never in Neon until v2.0 seeds it.
+
+The game currently scores Pool 2 artists on synthetic momentum features. Pool 1 artists are
+not on the game boards. Real momentum for Pool 2 starts once the v2.0 `collect.yml` workflow
+is run on main post-merge.
+
+**Finding 2 — real data status.** The cron has collected 1,247 real daily snapshots for the
+43 Pool 1 artists across 29 consecutive days (2026-08-18 through 2026-09-15, every run
+43/43 artists). The 2026-05-01 through 2026-08-17 window is synthetic backfill anchored on
+real August-18 subscriber counts. Real breakout labels for Pool 1 become available ~mid-October
+once the 30-day forward window closes.
+
+### v2.0 scope locked
+
+The v2.0 branch (`feature/v2.0-real-data-ml`, off develop) is cut and actively being built.
+The six-feature scope (A–F) is documented in `docs/v2.0-implementation-plan.md`. The headline
+change is seeding Pool 2 (game artists) into Neon and flipping `crescendo.game.use-real-momentum`
+from false to true once 14 days of real data exist for those artists. All other features
+(Isolation Forest detector, multi-horizon model, AI archetypes, model registry) are bundled
+into the same PR as complementary ML-stack upgrades. Rollback is a single config flag change;
+synthetic scoring is preserved as the fallback.
