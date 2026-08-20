@@ -70,17 +70,36 @@ public class GameService {
 
     @Transactional
     public GameView createGame(String playerName) {
-        return createGame(playerName, League.POP);
+        return createGame(playerName, League.POP, null);
     }
 
     @Transactional
     public GameView createGame(String playerName, League league) {
+        return createGame(playerName, league, null);
+    }
+
+    /**
+     * v1.7: Create a game, optionally in Historical Replay mode. When {@code replayDate} is
+     * non-null, the game drafts as if it were that past date ({@code draftAsOfDate == replayDate})
+     * and scores over the following 30-day window ({@code scoreAsOfDate == replayDate.plusDays(30)}).
+     */
+    @Transactional
+    public GameView createGame(String playerName, League league, LocalDate replayDate) {
         League chosen = league != null ? league : League.POP;
+        LocalDate draftDate = replayDate != null ? replayDate : rules.getDraftAsOfDate();
         GameSession game = new GameSession(
-                playerName, chosen, rules.getSalaryCap(), rules.getRosterSize(),
-                rules.getDraftAsOfDate());
+                playerName, chosen, rules.getSalaryCap(), rules.getRosterSize(), draftDate);
+        if (replayDate != null) {
+            game.setReplayDate(replayDate);
+            game.setScoreAsOfDate(replayDate.plusDays(30));
+        }
         games.save(game);
         return toView(game, List.of());
+    }
+
+    /** Returns true when the given game session is in Historical Replay mode. */
+    public boolean isReplayMode(GameSession game) {
+        return game.isReplayMode();
     }
 
     /**
@@ -103,12 +122,15 @@ public class GameService {
                     r == null ? null : r.rank(),
                     r == null ? List.of() : r.reasons(),
                     r == null ? null : r.discoveryEdge(),
-                    r == null ? null : r.confidenceTier()));
+                    r == null ? null : r.confidenceTier(),
+                    r == null ? null : r.predictionIntervalLo(),
+                    r == null ? null : r.predictionIntervalHi()));
         }
         board.sort(boardOrder());
         return new DraftBoardResponse(
                 game.getId(), game.getLeague(), game.getSalaryCap(), game.getRosterSize(),
-                game.getDraftAsOfDate(), board);
+                game.getDraftAsOfDate(), board,
+                game.getReplayDate(), game.isReplayMode());
     }
 
     /** Order the board by seam score desc (nulls last), tie-break by lower salary then artist id. */
@@ -318,7 +340,8 @@ public class GameService {
         return new GameView(
                 game.getId(), game.getPlayerName(), game.getLeague(), game.getSalaryCap(), spent,
                 game.getRosterSize(), game.getDraftAsOfDate(), game.getScoreAsOfDate(),
-                game.getStatus(), game.getPlayerScore(), entries, opponent, outcome);
+                game.getStatus(), game.getPlayerScore(), entries, opponent, outcome,
+                game.getReplayDate(), game.isReplayMode());
     }
 
     /** Build the opponent's side of the view from its persisted picks + snubs (null if not drafted). */
