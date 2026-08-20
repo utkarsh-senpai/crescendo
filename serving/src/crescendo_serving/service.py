@@ -61,16 +61,36 @@ class PredictService:
         # in a hot cohort — edge measures how far above the average this pick is).
         scores_arr = scores.values.astype(float)
         cohort_median = float(np.median(scores_arr)) if len(scores_arr) > 0 else 0.0
-        cohort_p25 = float(np.percentile(scores_arr, 25)) if len(scores_arr) > 0 else 0.0
-        cohort_p75 = float(np.percentile(scores_arr, 75)) if len(scores_arr) > 0 else 1.0
 
-        def _confidence_tier(score: float) -> str:
-            # Proxy for uncertainty using position in cohort distribution.
-            # v1.7 will replace this with proper conformal prediction intervals (W-TQA).
-            # Artists far above the median are high-confidence picks; near-median are uncertain.
-            if score >= cohort_p75:
+        # v1.7: Cross-sectional conformal prediction intervals (W-TQA / leave-one-out calibration).
+        # For each artist i, the calibration set is all OTHER artists at the same time step.
+        # calibration_scores[j] = |score_j - cohort_median| for all j != i
+        # interval_width_i = quantile(calibration_scores excl. i, 0.80)  -> 80% nominal coverage
+        # This is the TQA/W-TQA approach: cross-sectional rather than held-out time split,
+        # which is appropriate for n=43–55 panel artists.
+        n = len(scores_arr)
+        nonconf_scores = np.abs(scores_arr - cohort_median)  # |score - median| for all artists
+
+        interval_widths = []
+        for i in range(n):
+            # Leave-one-out: calibrate using all other artists
+            cal = np.concatenate([nonconf_scores[:i], nonconf_scores[i + 1:]])
+            if len(cal) == 0:
+                width = float(nonconf_scores[i])
+            else:
+                width = float(np.quantile(cal, 0.80))
+            interval_widths.append(width)
+
+        widths_arr = np.array(interval_widths)
+        # Confidence tier from interval width relative to panel median width:
+        # tight interval (below median) = HIGH confidence; above 75th = LOW
+        median_width = float(np.median(widths_arr)) if n > 0 else 1.0
+        p75_width = float(np.percentile(widths_arr, 75)) if n > 0 else 1.0
+
+        def _confidence_tier_from_width(width: float) -> str:
+            if width < median_width:
                 return "HIGH"
-            elif score >= cohort_median:
+            elif width < p75_width:
                 return "MEDIUM"
             return "LOW"
 
@@ -81,7 +101,9 @@ class PredictService:
                 float(scores.iloc[i]),
                 build_reasons(artists[i].features, importances, self.inorganic_threshold),
                 round(float(scores.iloc[i]) - cohort_median, 4),  # discovery_edge
-                _confidence_tier(float(scores.iloc[i])),
+                _confidence_tier_from_width(interval_widths[i]),
+                round(float(scores.iloc[i]) - interval_widths[i], 4),  # prediction_interval_lo
+                round(float(scores.iloc[i]) + interval_widths[i], 4),  # prediction_interval_hi
             )
             for i in range(len(artists))
         ]
@@ -96,8 +118,10 @@ class PredictService:
                 reasons=reasons,
                 discovery_edge=edge,
                 confidence_tier=tier,
+                prediction_interval_lo=lo,
+                prediction_interval_hi=hi,
             )
-            for idx, (aid, score, reasons, edge, tier) in enumerate(scored)
+            for idx, (aid, score, reasons, edge, tier, lo, hi) in enumerate(scored)
         ]
         return PredictResponse(
             as_of_date=as_of_date,
