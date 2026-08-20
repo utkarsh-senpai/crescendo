@@ -68,6 +68,14 @@ public class GameSession {
     @Column(length = 2048)
     private String opponentSnubs;
 
+    /**
+     * v1.7: Historical Replay mode. When non-null, the game is replaying history as if it were
+     * this past date — {@code draftAsOfDate} == {@code replayDate} and
+     * {@code scoreAsOfDate} == {@code replayDate.plusDays(30)}. Null for live games.
+     */
+    @Column(nullable = true)
+    private LocalDate replayDate;
+
     protected GameSession() {
         // JPA
     }
@@ -144,5 +152,18 @@ public class GameSession {
 
     public void setOpponentSnubs(String opponentSnubs) {
         this.opponentSnubs = opponentSnubs;
+    }
+
+    public LocalDate getReplayDate() {
+        return replayDate;
+    }
+
+    public void setReplayDate(LocalDate replayDate) {
+        this.replayDate = replayDate;
+    }
+
+    /** Returns true when this game is in Historical Replay mode (replayDate is non-null). */
+    public boolean isReplayMode() {
+        return replayDate != null;
     }
 }

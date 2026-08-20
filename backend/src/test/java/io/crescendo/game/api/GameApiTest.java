@@ -46,7 +46,7 @@ class GameApiTest {
             for (Object o : snaps) {
                 var s = (io.crescendo.game.domain.ArtistFeatureSnapshot) o;
                 out.put(s.getArtistId(), new RankedArtist(
-                        s.getArtistId(), 0.5, rank++, List.of("test reason"), null, null));
+                        s.getArtistId(), 0.5, rank++, List.of("test reason"), null, null, null, null));
             }
             return out;
         });
@@ -112,5 +112,23 @@ class GameApiTest {
     void unknownGameReturns404() throws Exception {
         mvc.perform(get("/api/games/{id}", 999999))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void replayDateIsPresentInBoardResponseWhenPassed() throws Exception {
+        // v1.7: when replayDate is provided, the board response carries it back
+        String createBody = mvc.perform(post("/api/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playerName\":\"ReplayScout\",\"replayDate\":\"2026-06-01\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.replayDate").value("2026-06-01"))
+                .andExpect(jsonPath("$.isReplayMode").value(true))
+                .andReturn().getResponse().getContentAsString();
+        long gameId = json.readTree(createBody).get("gameId").asLong();
+
+        mvc.perform(get("/api/games/{id}/board", gameId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.replayDate").value("2026-06-01"))
+                .andExpect(jsonPath("$.isReplayMode").value(true));
     }
 }

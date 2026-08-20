@@ -67,7 +67,7 @@ class GameServiceTest {
                 List<String> reasons = inorganic
                         ? List.of("discounted: growth looks inorganic")
                         : List.of("steady organic momentum");
-                out.put(id, new RankedArtist(id, score, rank++, reasons, null, null));
+                out.put(id, new RankedArtist(id, score, rank++, reasons, null, null, null, null));
             }
             return out;
         });
@@ -202,5 +202,17 @@ class GameServiceTest {
         assertThat(leagues).hasSize(3);
         assertThat(leagues).extracting(io.crescendo.game.api.GameDtos.LeagueOption::id)
                 .containsExactly("POP", "EDM", "BOLLYWOOD");
+    }
+
+    @Test
+    void replayModeSetsDraftAndScoreDatesFromReplayDate() {
+        // v1.7: create a replay game; draftAsOfDate == replayDate, scoreAsOfDate == replayDate+30d
+        LocalDate replayDate = LocalDate.of(2026, 6, 1);
+        GameView game = gameService.createGame("Replay", io.crescendo.game.domain.League.POP, replayDate);
+
+        assertThat(game.draftAsOfDate()).isEqualTo(replayDate);
+        assertThat(game.scoreAsOfDate()).isEqualTo(LocalDate.of(2026, 7, 1));
+        assertThat(game.replayDate()).isEqualTo(replayDate);
+        assertThat(game.isReplayMode()).isTrue();
     }
 }
