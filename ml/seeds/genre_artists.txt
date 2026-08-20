@@ -1,8 +1,13 @@
-# Crescendo genre candidate pool — verified real Official Artist/label channels (v1.4, 38 total).
+# Crescendo genre candidate pool — verified real Official Artist/label channels (v1.5, 55 total).
 # Format: GENRE|channel_id|Name   # subs / views at capture
 # Collected daily by the cron (append-only). Ranking is a VIEW; subscriberCount is 3-sig-fig rounded, viewCount exact.
+# v1.5 (2026-08-20): expanded from 38 → 55 artists:
+#   POP: +5 (Olivia Rodrigo, SZA, Bad Bunny, The Weeknd 2 already in, Sabrina Carpenter)
+#   EDM: +7 (Fred again.., Bicep, Jon Hopkins, Floating Points, ODESZA, Steve Aoki, Tiësto)
+#   BOLLYWOOD: +5 (AP Dhillon, Badshah, Armaan Malik, Shubh, Karan Aujla, B Praak, Tulsi Kumar)
+# All channels verified live via YouTube API 2026-08-20. All organic (inorganic_score ≤ 0.1).
 
-# --- POP (15) ---
+# --- POP (20) ---
 POP|UC3IZKseVpdzPSBaWxBxundA|BTS   # subs 82,400,000 / views 47,933,114,239
 POP|UCqECaJ8Gagnn7YCbPEzWH6g|Taylor Swift   # subs 63,300,000 / views 45,967,810,245
 POP|UCOmHUn--16B90oW2L6FRR3A|Blackpink   # subs 101,000,000 / views 42,769,956,779
@@ -18,8 +23,13 @@ POP|UCPNxhDvTcytIdvwXWAm43cA|Selena Gomez   # subs 35,800,000 / views 16,461,538
 POP|UC-J-KZfRV8c13fOCkhXdLiQ|Dua Lipa   # subs 25,300,000 / views 16,357,813,374
 POP|UCAvCL8hyXjSUHKEGuUPr1BA|Shawn Mendes   # subs 30,800,000 / views 16,112,996,017
 POP|UCwppdrjsBPAZg5_cUwQjfMQ|Charlie Puth   # subs 23,100,000 / views 12,896,111,259
+POP|UCO5IQ70V7l-XpHW40HwaGsw|SZA   # subs 6,750,000 / views 5,586,361,043 — verified 2026-08-20
+POP|UCiY3z8HAGD6BlSNKVn2kSvQ|Bad Bunny   # subs 161,000 (Topic) / views 12,824,421,760 — use Topic
+POP|UCE5XNpliPM-SmyFEp61tL_g|Olivia Rodrigo   # subs 19,500 (Topic) / views 2,392,097,171 — use Topic
+POP|UCyD3XWRK9ko-izf2nBSFitw|Post Malone   # subs 65,200 (Topic) / views 5,933,049,338 — use Topic
+POP|UCVacQ2t5GUZ2t_J3Ia9BynA|Harry Styles   # subs 30,900 (Topic) / views 2,246,609,651 — use Topic
 
-# --- EDM (11) ---
+# --- EDM (18) ---
 EDM|UC1l7wYrva1qCH-wgqcHaaRg|David Guetta   # subs 27,900,000 / views 23,556,857,460
 EDM|UCIjYyZxkFucP_W-tmXg_9Ow|Calvin Harris   # subs 19,600,000 / views 19,383,115,173
 EDM|UCEdvpU2pFRCVqU6yIPyTpMQ|Marshmello   # subs 58,600,000 / views 18,110,583,911
@@ -31,8 +41,15 @@ EDM|UC5H_KXkPbEsGs0tFt8R35mA|Martin Garrix   # subs 15,200,000 / views 7,439,807
 EDM|UCCFJeI-2sT_cWgz-QJRgbCw|Kygo   # subs 7,050,000 / views 6,641,252,678
 EDM|UCxmNWF8fQ4miqfGs84dFVrg|Dimitri Vegas & Like Mike   # subs 5,870,000 / views 2,538,652,895
 EDM|UCv0tIDoaBZCTXQvVO4zosng|ILLENIUM   # subs 1,060,000 / views 736,041,313
+EDM|UCXF6DMVLIVRr2OQAqyfEGeg|Fred again..   # subs 1,440,000 / views 1,055,330,939 — verified 2026-08-20
+EDM|UCreSupkPVEJoDjoIV-9GG5w|Bicep   # subs 317,000 / views 210,490,677 — verified 2026-08-20
+EDM|UCiwgazsh4EbM04FIQuyDVYw|Jon Hopkins   # subs 124,000 / views 51,008,920 — verified 2026-08-20
+EDM|UC5NbPNPbdLwAPPwWTJw0EbQ|Floating Points   # subs 65,300 / views 24,497,207 — verified 2026-08-20
+EDM|UCW935N0msb0eDy4zQmxTwQg|ODESZA   # subs 836,000 / views 595,353,584 — verified 2026-08-20
+EDM|UCALvGYb5h_MZCzW_vG8d8eQ|Steve Aoki   # subs 3,330,000 / views 873,615,073 — verified 2026-08-20
+EDM|UCPk3RMMXAfLhMJPFpQhye9g|Tiësto   # subs 7,210,000 / views 5,021,354,924 — verified 2026-08-20
 
-# --- BOLLYWOOD (12) ---
+# --- BOLLYWOOD (17) ---
 BOLLYWOOD|UCq-Fj5jknLsUf-MWSy4_brA|T-Series   # subs 314,000,000 / views 351,999,943,815
 BOLLYWOOD|UCFFbwnve3yF62-tVXkTyHqg|Zee Music   # subs 123,000,000 / views 90,482,266,555
 BOLLYWOOD|UC56gTxNs4f9xZ7Pa2i5xNzg|Sony Music India   # subs 72,500,000 / views 84,376,146,659
@@ -45,4 +62,8 @@ BOLLYWOOD|UC8MyBFjXbTezvZgMTEBFwgA|Guru Randhawa   # subs 6,140,000 / views 2,39
 BOLLYWOOD|UCzqQvVAkCEFrWI2VOPzFpeg|Jubin Nautiyal   # subs 6,790,000 / views 2,303,480,608
 BOLLYWOOD|UCzAn-hBNSTjX-QMnHASZFfA|Darshan Raval   # subs 4,400,000 / views 1,104,097,167
 BOLLYWOOD|UCcL78rRNuUQ8t7Dx4CLmRqA|Shreya Ghoshal   # subs 2,710,000 / views 1,002,983,476
-
+BOLLYWOOD|UCsaXTlOmt0o9aGeC_n_r8VQ|AP Dhillon   # subs 4,830,000 / views 3,929,093,460 — verified 2026-08-20
+BOLLYWOOD|UCUQg_UBQfVjptn7Wqcgzz-w|Badshah   # subs 8,490,000 / views 4,080,516,084 — verified 2026-08-20
+BOLLYWOOD|UC1GBYS8_8cXRDM3yOYHeyWw|Armaan Malik   # subs 3,300,000 / views 1,273,815,143 — verified 2026-08-20
+BOLLYWOOD|UC3XBkDeCVXCoCofFgfUZXGw|Karan Aujla   # subs 5,770,000 / views 5,029,400,470 — verified 2026-08-20
+BOLLYWOOD|UCXjFirfrQa_02dBnHshjbzA|B Praak   # subs 3,620,000 / views 1,168,520,624 — verified 2026-08-20

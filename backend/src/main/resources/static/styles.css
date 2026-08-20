@@ -210,6 +210,16 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 .pill.breakout { color: var(--breakout); border:1px solid var(--breakout); background: rgba(166,247,107,.08); }
 .pill.flag { color: var(--danger); border:1px solid var(--danger); background: rgba(255,107,107,.08); }
 .pill.good { color: var(--success); border:1px solid rgba(91,227,154,.5); background: rgba(91,227,154,.08); }
+/* v1.5: discovery edge + confidence tier badges */
+.badges { display:flex; flex-wrap:wrap; gap:.3rem; align-items:center; }
+.pill.edge { font-size:.68rem; }
+.pill.edge-high { color:#a6f76b; border:1px solid rgba(166,247,107,.5); background:rgba(166,247,107,.08); }
+.pill.edge-mid  { color:#7ecaf7; border:1px solid rgba(126,202,247,.4); background:rgba(126,202,247,.06); }
+.pill.edge-low  { color:var(--text-lo); border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); }
+.pill.conf { font-size:.66rem; }
+.pill.conf-high { color:#a6f76b; border:1px solid rgba(166,247,107,.4); background:rgba(166,247,107,.06); }
+.pill.conf-mid  { color:#f7d26b; border:1px solid rgba(247,210,107,.4); background:rgba(247,210,107,.06); }
+.pill.conf-low  { color:var(--text-lo); border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); }
 
 /* ---- buttons ---- */
 .btn {

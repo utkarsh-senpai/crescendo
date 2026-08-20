@@ -29,7 +29,10 @@ public final class GameDtos {
             int salary,
             Double breakoutScore,
             Integer rank,
-            List<String> reasons) {
+            List<String> reasons,
+            // v1.5: discovery edge (how far above cohort median) + confidence tier
+            Double discoveryEdge,
+            String confidenceTier) {
     }
 
     public record DraftBoardResponse(

@@ -101,7 +101,9 @@ public class GameService {
                     a.getArtistId(), a.getName(), a.getGenre(), a.getSalary(),
                     r == null ? null : r.breakoutScore(),
                     r == null ? null : r.rank(),
-                    r == null ? List.of() : r.reasons()));
+                    r == null ? List.of() : r.reasons(),
+                    r == null ? null : r.discoveryEdge(),
+                    r == null ? null : r.confidenceTier()));
         }
         board.sort(boardOrder());
         return new DraftBoardResponse(

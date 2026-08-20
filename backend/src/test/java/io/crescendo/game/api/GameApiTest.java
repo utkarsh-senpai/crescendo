@@ -46,7 +46,7 @@ class GameApiTest {
             for (Object o : snaps) {
                 var s = (io.crescendo.game.domain.ArtistFeatureSnapshot) o;
                 out.put(s.getArtistId(), new RankedArtist(
-                        s.getArtistId(), 0.5, rank++, List.of("test reason")));
+                        s.getArtistId(), 0.5, rank++, List.of("test reason"), null, null));
             }
             return out;
         });
@@ -65,14 +65,14 @@ class GameApiTest {
 
         mvc.perform(get("/api/games/{id}/board", gameId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artists.length()").value(15))
+                .andExpect(jsonPath("$.artists.length()").value(20)) // v1.5: POP expanded to 20
                 .andExpect(jsonPath("$.artists[0].breakoutScore").value(0.5));
 
         mvc.perform(post("/api/games/{id}/draft", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"artistIds\":[511,512,513,514,515]}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.salarySpent").value(60))
+                .andExpect(jsonPath("$.salarySpent").value(80)) // v1.5: 511+512+513+514+515 = 18+17+16+15+14 = 80
                 .andExpect(jsonPath("$.roster.length()").value(5))
                 // The transparent AI opponent drafts off the same board and shows its reasoning.
                 .andExpect(jsonPath("$.opponent.name").value("Crescendo AI"))
