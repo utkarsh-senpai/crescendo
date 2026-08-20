@@ -221,6 +221,13 @@ section { padding-block: clamp(1.25rem, 3vw, 2.25rem); }
 .pill.conf-mid  { color:#f7d26b; border:1px solid rgba(247,210,107,.4); background:rgba(247,210,107,.06); }
 .pill.conf-low  { color:var(--text-lo); border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); }
 
+/* v2.0: replay mode preset selector */
+.replay-panel { text-align:center; }
+.replay-presets { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin-top:.25rem; }
+.replay-preset { font-size:.8rem; padding:.4rem .85rem; border-radius:var(--radius-pill); border:1px solid rgba(255,255,255,.15); background:var(--bg-2); color:var(--text-lo); transition:border-color var(--dur), color var(--dur), background var(--dur); }
+.replay-preset:hover { border-color:var(--accent); color:var(--text-hi); }
+.replay-preset.on { border-color:var(--accent); background:rgba(61,225,255,.1); color:var(--accent); font-weight:700; }
+
 /* ---- buttons ---- */
 .btn {
   font: 700 var(--fs-body)/1 var(--font-display);

@@ -63,32 +63,70 @@ function miniEq(n = 5) {
   return '<span class="eq" aria-hidden="true">' + '<span></span>'.repeat(n) + '</span>';
 }
 
-/* ---- v1.7: replay mode toggle ---- */
+/* ---- v1.7: replay mode toggle — preset buttons, no fiddly date input ---- */
 (function initReplayToggle() {
   const toggle = document.getElementById('replayToggle');
   const panel = document.getElementById('replayPanel');
-  const input = document.getElementById('replayDate');
-  if (!toggle || !panel || !input) return;
+  const presetsEl = document.getElementById('replayPresets');
+  const selectedEl = document.getElementById('replaySelected');
+  if (!toggle || !panel || !presetsEl) return;
 
-  // Default max = today (can't replay the future)
-  const today = new Date().toISOString().slice(0, 10);
-  input.max = today;
+  // Build preset options relative to today. Data starts 2026-05-01 so cap at that.
+  // Each preset: { label, date } where date is ISO yyyy-mm-dd (1st of that month).
+  function buildPresets() {
+    const now = new Date();
+    const presets = [];
+    // Go back up to 6 months, stepping monthly
+    for (let m = 1; m <= 6; m++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      // Don't offer dates before data start
+      if (d < new Date('2026-05-01')) break;
+      const iso = d.toISOString().slice(0, 7) + '-01'; // first of month
+      const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      presets.push({ label, date: iso });
+    }
+    return presets;
+  }
+
+  const presets = buildPresets();
+  if (presets.length === 0) {
+    // Not enough history yet — hide the whole toggle
+    toggle.style.display = 'none';
+    return;
+  }
+
+  // Render preset buttons
+  presetsEl.innerHTML = presets.map(p =>
+    `<button class="btn btn-ghost btn-sm replay-preset" data-date="${p.date}" type="button">${p.label}</button>`
+  ).join('');
 
   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     toggle.setAttribute('aria-expanded', String(!expanded));
     panel.classList.toggle('hide', expanded);
-    if (!expanded) {
-      input.focus();
-    } else {
+    if (expanded) {
       // Collapsing clears the replay date
-      input.value = '';
+      presetsEl.querySelectorAll('.replay-preset').forEach(b => b.classList.remove('on'));
+      if (selectedEl) selectedEl.textContent = '';
       state.replayDate = null;
     }
   });
 
-  input.addEventListener('change', () => {
-    state.replayDate = input.value || null;
+  presetsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.replay-preset');
+    if (!btn) return;
+    const date = btn.dataset.date;
+    // Toggle selection
+    if (state.replayDate === date) {
+      state.replayDate = null;
+      btn.classList.remove('on');
+      if (selectedEl) selectedEl.textContent = '';
+    } else {
+      state.replayDate = date;
+      presetsEl.querySelectorAll('.replay-preset').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      if (selectedEl) selectedEl.textContent = 'Drafting as of ' + btn.textContent + ' — results show what happened over the next 30 days.';
+    }
   });
 })();
 
@@ -147,7 +185,9 @@ function renderBoard() {
   const replayBanner = $('#replayBanner');
   if (replayBanner) {
     if (b.isReplayMode && b.replayDate) {
-      replayBanner.textContent = 'REPLAY: Drafting as of ' + b.replayDate + ' — see what happened';
+      const rDate = new Date(b.replayDate + 'T00:00:00');
+      const rLabel = rDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      replayBanner.textContent = '⏪ Time travel — picking as of ' + rLabel + '. Scores show what actually happened over the next 30 days.';
       replayBanner.classList.remove('hide');
     } else {
       replayBanner.classList.add('hide');
@@ -365,7 +405,9 @@ function renderScore() {
       const byGrowth = [...g.roster].sort((a, b) => (b.realisedGrowth30d || 0) - (a.realisedGrowth30d || 0));
       const standout = byGrowth[0];
       const endDate = g.scoreAsOfDate || (g.replayDate + ' (+30 days)');
-      replayDiscover.textContent = 'You discovered ' + standout.name + ' in the +30 day window ending ' + endDate;
+      const eDate = new Date((g.scoreAsOfDate || endDate) + 'T00:00:00');
+      const eLabel = eDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      replayDiscover.textContent = standout.name + ' was your standout pick — they grew ' + fmtPct(standout.realisedGrowth30d) + ' by ' + eLabel + '.';
       replayDiscover.classList.remove('hide');
     } else {
       replayDiscover.classList.add('hide');

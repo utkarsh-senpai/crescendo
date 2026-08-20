@@ -72,13 +72,13 @@
         </button>
       </div>
       <div id="replayPanel" class="replay-panel hide" style="margin-top:0.5rem">
-        <p class="dim" style="font-size:var(--fs-small);margin:0 0 0.5rem">
+        <p class="dim" style="font-size:var(--fs-small);margin:0 0 0.75rem">
           Draft as if it's a past date — see if your picks would have worked.
         </p>
-        <div class="field">
-          <label for="replayDate">Time travel to:</label>
-          <input id="replayDate" type="date" max="" />
+        <div class="replay-presets" id="replayPresets">
+          <!-- Preset buttons rendered by app.js based on today's date -->
         </div>
+        <p class="dim" style="font-size:var(--fs-small);margin-top:0.5rem" id="replaySelected" aria-live="polite"></p>
       </div>
 
       <div class="cta" style="margin-top:1rem">
