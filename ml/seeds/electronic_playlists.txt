@@ -56,3 +56,55 @@ channel:UCEdVZvu1KoHchPV9xAEsI5Q  # Madness Music (1,490)
 channel:UCtPgeVNce3kEIjM5dchJgBQ  # Afinity (1,250)
 channel:UCO60fyYFHOELyQ6e1J7HgNA  # SyGomn (1,130)
 channel:UChtnauWfOftiZebGeMJ75dw  # Planet Good Music (1,060)
+
+# ---- POP EMERGING (added v2.0, 2026-08-21 — all verified live, 1k-100k subs) ----
+channel:UCBJn8qy6bI82Oh34kzHViPQ  # beabadoobeeVEVO (22,600) — bedroom pop/indie
+channel:UCmNtyqQl03eWyvikCMbO3fA  # Marie Ulven / girl in red Topic (6,250)
+channel:UCzc1FjJnWChcX1CQkSC5nAA  # Cavetown Topic (4,380) — indie bedroom pop
+channel:UCTUFasGk13r6qnMrS6UyVUA  # mxmtoon Topic (2,570) — indie pop
+channel:UC1IJbwupf3T8NqPFvoDstGA  # Rini (13,300) — R&B pop
+channel:UCc7XmgqMtNDlaUoxz3wXY-g  # chloe moriondo Topic (7,920) — indie pop
+channel:UCYQiBxzIrYonS0OyoY1evzA  # Leith Ross (48,500) — indie folk pop
+channel:UCNXV_R8DkNq8xIpNphO-DMw  # SOFIA ISELLA Topic (8,060) — indie pop
+channel:UCJtROTPxo3qnEzww8JyDxuA  # Laufey Topic (11,300) — jazz pop Iceland
+channel:UCyaEVF4G6YcfsnUOM34uXUg  # Priya Ragu (65,200) — indie pop Tamil-Swedish
+channel:UCcIU9xhkIqW0oQh-xJpJTZQ  # Wallows Topic (1,250) — indie pop
+channel:UCTOoSEBp37yyNKoIhz1OyoQ  # RemiWolfVEVO (1,010) — indie pop funk
+
+# ---- BOLLYWOOD / INDIAN INDIE EMERGING (added v2.0, 2026-08-21 — verified live) ----
+channel:UCo36OSM_dp0KynQ02zibnsQ  # Anuv Jain Topic (1,690) — indie pop Hindi
+channel:UC8TXnDE17HVa8j2Ko6glyAQ  # When Chai Met Toast Topic (4,920) — indie folk
+channel:UCvHKN88FSyGDd09P00jBBLA  # aswekeepsearching (22,100) — post-rock India
+channel:UC4rbnZsMi7Fxknp-Oz7d6fg  # Ritviz & Nucleya Topic (6,920) — electronic Hindi
+channel:UCUTvMtHDdvrNvZJ2IbuCNnQ  # Ankur Tewari (62,900) — indie Hindi singer
+channel:UCMyWfOzSUb1qFxOLEcZGt0w  # Peter Cat Recording Co (61,500) — indie Hindi
+channel:UCL0-89BZ7NWvJfmwDunDJ-A  # Seedhe Maut Topic (5,480) — Hindi hip-hop
+channel:UCXnDhj9XOvvnoEvzV4Gcv6Q  # Roshni Gupta (11,400) — indie Hindi pop
+channel:UCwXvxgmYjgO1PKBCXdufT4Q  # The Local Train Topic (79,400) — indie rock Hindi
+channel:UCBye5Syn2obzE7ilrdk6geQ  # Prabh Deep Topic (1,910) — Hindi rap
+channel:UCEyNKue-1AFJZYTNmBzGsbw  # Sanjoy Tudu Official (80,300) — indie folk
+channel:UCvJlxpFGQIiEG8jNYGLeuDw  # Kayan (14,900) — indie Hindi
+channel:UCZb3-axDUF1OZa1VTeHoYlw  # HARJAS HARJAAYI (99,900) — Punjabi folk emerging
+
+# ---- MORE BOLLYWOOD / INDIAN INDIE (added v2.0, 2026-08-21 — verified live) ----
+channel:UCki9PeBF0g8btGEw3hzIgbQ  # Advaita Topic (4,840) — fusion Hindi
+channel:UC2-tJ7n-kqLuKRDO--Wk6sA  # Swarathma (15,900) — indie folk rock India
+channel:UCFSo2Cozzp0TMWcYaDwWcoA  # Zaeden Topic (1,220) — electronic Hindi pop
+channel:UCUYEl-MviBSX0DcEME-pAuw  # Naezy Topic (2,370) — Mumbai hip-hop
+channel:UCd-jpVLDAOTt8pV3Ki4qGxA  # Indian Ocean Topic (9,960) — indie fusion
+channel:UCdazpr3zIJQ7RjqkjvNMYJQ  # Indian Ocean Official (36,600) — indie fusion
+channel:UCK9SWPMqndLuv9BjrBuaAjg  # Parikrama India Official (23,200) — indie rock
+channel:UC8uWh-NTRDDu-OT1GWYmndQ  # Natalie Di Luccio (54,900) — Indo-Canadian singer
+channel:UCSVbVFy5yqkfwbqs_aWmx8w  # OAFF Topic (11,900) — indie Hindi ambient
+channel:UCEYmUItQ95WqJg2X0qaGWiQ  # Dhruv's Take (1,620) — indie Hindi
+channel:UCo8TBjxy-D4oihARL01-LeQ  # advaitamusicindia (3,980) — indie fusion
+
+# ---- MORE POP EMERGING (added v2.0, 2026-08-21 — verified live) ----
+channel:UCU7v5kTKdLacf5c4KeMempQ  # Julien Baker (47,500) — indie folk pop
+channel:UCuW8oZH4asLgvJ9FstClVzQ  # Magdalena Bay Topic (3,660) — synth pop
+channel:UC0hN36WuiKePDc-iNDS_AaA  # Alex G Topic (6,960) — indie pop
+channel:UCQZIsRAM07-9XlA2ciwwvLA  # Snail Mail (35,500) — indie rock pop
+channel:UCprIJgC2-qqSHNVztFjRFmw  # Phoebe Bridgers Topic (1,830) — indie folk
+channel:UC180845j-9D20NXXB6R6GYA  # Soccer Mommy (63,300) — indie pop
+channel:UCO1_sLg4NvtjL2m6QIvjy0w  # Wednesday (26,200) — indie rock
+channel:UCukQWdeL6J_JnqTQtZeE-Og  # Hand Habits (1,890) — indie folk
