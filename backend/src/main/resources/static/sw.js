@@ -5,7 +5,7 @@
  * instantly and works offline; network-first (never cached) for /api calls so game state is always
  * live. On a new deploy, bump SHELL_VERSION to invalidate the old shell cache.
  */
-const SHELL_VERSION = 'crescendo-shell-v2.0.0';
+const SHELL_VERSION = 'crescendo-shell-v2.0.1';
 const SHELL = [
   '/',
   '/index.html',

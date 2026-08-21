@@ -122,8 +122,9 @@ class GameServiceTest {
 
         GameView scored = gameService.score(game.gameId(), LocalDate.parse("2026-08-01"));
         assertThat(scored.status()).isEqualTo(GameSession.Status.SCORED);
-        // Mean realised growth_30d for 511,512,513,514,515 = (.22+.20+.18+.16+.14)/5 = .18 (v1.5 seeds)
-        assertThat(scored.playerScore()).isCloseTo(0.18, org.assertj.core.data.Offset.offset(1e-6));
+        // v2.0 seeds: 511=Billie(0.33) 512=Selena(0.07) 513=Dua(0.36) 514=Shawn(0.05) 515=Charlie(0.04)
+        // Mean = (0.33+0.07+0.36+0.05+0.04)/5 = 0.17
+        assertThat(scored.playerScore()).isCloseTo(0.17, org.assertj.core.data.Offset.offset(1e-6));
     }
 
     @Test
